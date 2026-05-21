@@ -46,7 +46,6 @@ ADMIN_USER=${ADMIN_USER:-admin}
 read -rsp "  Contraseña: " ADMIN_PASS
 echo
 
-docker compose cp setup-admin.js gastoh:/app/setup-admin.js
 docker compose exec gastoh node setup-admin.js "$ADMIN_USER" "$ADMIN_PASS"
 
 echo -e "\n${GREEN}=== ¡Listo! ===${NC}"

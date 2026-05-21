@@ -44,6 +44,12 @@ COPY --from=builder --chown=gastoh:gastoh /app/node_modules/.prisma ./node_modul
 COPY --from=builder --chown=gastoh:gastoh /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder --chown=gastoh:gastoh /app/node_modules/prisma ./node_modules/prisma
 
+# Módulos necesarios para los scripts de administración
+COPY --from=builder --chown=gastoh:gastoh /app/node_modules/bcryptjs ./node_modules/bcryptjs
+
+# Scripts de administración
+COPY --chown=gastoh:gastoh setup-admin.js ./
+
 # Script de arranque
 COPY --chown=gastoh:gastoh docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh

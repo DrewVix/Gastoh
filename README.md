@@ -73,7 +73,6 @@ cp .env.example .env
 docker compose up -d --build
 
 # 3. Crear usuario admin
-docker compose cp setup-admin.js gastoh:/app/setup-admin.js
 docker compose exec gastoh node setup-admin.js admin tuPassword
 ```
 

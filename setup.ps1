@@ -57,7 +57,6 @@ $adminPass = Read-Host "  Contraseña" -AsSecureString
 $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($adminPass)
 $plainPass = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
 
-docker compose cp setup-admin.js gastoh:/app/setup-admin.js
 docker compose exec gastoh node setup-admin.js $adminUser $plainPass
 
 Write-Host "`n=== ¡Listo! ===" -ForegroundColor Green

@@ -30,7 +30,7 @@ const GROUPS = [
   { name: 'Compras',       icon: 'ShoppingBag',     color: '#9C27B0', children: ['Compras Online', 'Ropa', 'Hogar'] },
   { name: 'Digital',       icon: 'Wifi',            color: '#00BCD4', children: ['Suscripciones', 'Telecomunicaciones'] },
   { name: 'Bienestar',     icon: 'HeartPulse',      color: '#4CAF50', children: ['Salud', 'Deporte'] },
-  { name: 'Vivienda',      icon: 'Home',            color: '#607D8B', children: ['Vivienda', 'Utilities', 'Seguros'] },
+  { name: 'Casa',          icon: 'Home',            color: '#607D8B', children: ['Vivienda', 'Utilities', 'Seguros'] },
   { name: 'Finanzas',      icon: 'Landmark',        color: '#43A047', children: ['Transferencias', 'Efectivo', 'Ingreso', 'Inversion'] },
 ]
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/session'
+import { seedDefaultCategories } from '@/lib/seed-categories'
 
 export async function GET() {
   const session = await getSession()
@@ -38,6 +39,9 @@ export async function POST(req: NextRequest) {
     data: { username: username.trim(), passwordHash, isAdmin: false },
     select: { id: true, username: true, isAdmin: true, createdAt: true },
   })
+
+  // Seed default categories for new user
+  await seedDefaultCategories(user.id)
 
   return NextResponse.json(user, { status: 201 })
 }

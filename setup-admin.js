@@ -1,10 +1,10 @@
 'use strict'
 // Crea o actualiza el usuario admin con una contraseña en texto plano.
 // Uso: node setup-admin.js <username> <password>
-// Ejemplo: node setup-admin.js admin miPassword123
 
 const { PrismaClient } = require('@prisma/client')
 const bcrypt = require('bcryptjs')
+const { seedCategoriesForUser } = require('./prisma/default-categories')
 
 const [,, username, password] = process.argv
 if (!username || !password) {
@@ -22,6 +22,7 @@ async function run() {
     create: { username, passwordHash, isAdmin: true },
   })
   console.log(`✓ Usuario '${user.username}' listo (admin)`)
+  await seedCategoriesForUser(p, user.id)
 }
 
 run()

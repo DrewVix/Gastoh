@@ -60,11 +60,6 @@ $plainPass = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
 docker compose cp setup-admin.js gastoh:/app/setup-admin.js
 docker compose exec gastoh node setup-admin.js $adminUser $plainPass
 
-# 6. Reglas de comercio
-Write-Host "`n  Instalando reglas de comercio predefinidas..." -ForegroundColor Yellow
-docker compose cp setup-rules.js gastoh:/app/setup-rules.js
-docker compose exec gastoh node setup-rules.js
-
 Write-Host "`n=== ¡Listo! ===" -ForegroundColor Green
 Write-Host "  Abre http://localhost:3000 en tu navegador"
 Write-Host "  Usuario: $adminUser"

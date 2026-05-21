@@ -49,11 +49,6 @@ echo
 docker compose cp setup-admin.js gastoh:/app/setup-admin.js
 docker compose exec gastoh node setup-admin.js "$ADMIN_USER" "$ADMIN_PASS"
 
-# 6. Reglas
-echo "  Instalando reglas de comercio predefinidas..."
-docker compose cp setup-rules.js gastoh:/app/setup-rules.js
-docker compose exec gastoh node setup-rules.js
-
 echo -e "\n${GREEN}=== ¡Listo! ===${NC}"
 echo "  Abre http://localhost:3000 en tu navegador"
 echo "  Usuario: $ADMIN_USER"

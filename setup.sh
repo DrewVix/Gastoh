@@ -36,8 +36,18 @@ docker compose build
 echo -e "\n${YELLOW}[4/5] Arrancando contenedor...${NC}"
 docker compose up -d
 echo "  Esperando a que la app arranque..."
-sleep 5
-echo "  ✓ Contenedor en ejecución"
+for i in $(seq 1 30); do
+  sleep 2
+  STATUS=$(docker compose ps --format json 2>/dev/null | grep -o '"Health":"[^"]*"' | head -1 | cut -d'"' -f4)
+  LOGS=$(docker compose logs gastoh --tail 5 2>/dev/null)
+  if echo "$LOGS" | grep -q "Arrancando Gastoh"; then
+    echo "  ✓ Contenedor listo"
+    break
+  fi
+  if [ "$i" = "30" ]; then
+    echo "  ✓ Contenedor en ejecución (timeout)"
+  fi
+done
 
 # 5. Admin
 echo -e "\n${YELLOW}[5/5] Creando usuario administrador...${NC}"

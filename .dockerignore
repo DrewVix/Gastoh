@@ -1,0 +1,8 @@
+.git
+.claude
+node_modules
+.next
+prisma/data
+.env
+.env.local
+*.db

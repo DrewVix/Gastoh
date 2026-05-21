@@ -1,0 +1,105 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  username     String        @unique
+  passwordHash String
+  isAdmin      Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+  categories   Category[]
+  bankAccounts BankAccount[]
+  merchantRules MerchantRule[]
+}
+
+model BankAccount {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  bank         String
+  displayName  String
+  color        String?
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+
+  @@index([userId])
+}
+
+model Transaction {
+  id            String       @id @default(cuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id])
+  bankAccountId String?
+  bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
+  externalId    String
+  date          DateTime
+  amount        Float
+  currency      String       @default("EUR")
+  description   String
+  merchantName  String?
+  categoryId    String?
+  category      Category?    @relation(fields: [categoryId], references: [id])
+  isManual      Boolean      @default(false)
+  isTransfer    Boolean      @default(false)
+  notes         String?
+  rawData       String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@unique([userId, bankAccountId, externalId])
+  @@index([userId])
+  @@index([date])
+  @@index([categoryId])
+  @@index([bankAccountId])
+}
+
+model Category {
+  id           String         @id @default(cuid())
+  userId       String
+  user         User           @relation(fields: [userId], references: [id])
+  name         String
+  icon         String?
+  color        String?
+  isDefault    Boolean        @default(false)
+  parentId     String?
+  parent       Category?      @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children     Category[]     @relation("CategoryTree")
+  transactions Transaction[]
+  rules        CategoryRule[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([parentId])
+}
+
+model CategoryRule {
+  id         String   @id @default(cuid())
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  pattern    String
+  isRegex    Boolean  @default(false)
+  priority   Int      @default(0)
+  createdAt  DateTime @default(now())
+}
+
+model MerchantRule {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  pattern       String
+  matchType     String   @default("contains")
+  canonicalName String
+  priority      Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([priority])
+}

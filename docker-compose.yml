@@ -1,0 +1,14 @@
+services:
+  gastoh:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: file:/app/prisma/data/gastoh.db
+      SESSION_SECRET: ${SESSION_SECRET}
+    volumes:
+      - gastoh_data:/app/prisma/data
+    restart: unless-stopped
+
+volumes:
+  gastoh_data:

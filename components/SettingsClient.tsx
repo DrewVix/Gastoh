@@ -320,7 +320,7 @@ export default function SettingsClient() {
                   ) : (
                     <>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium">{acc.displayName}</div>
+                        <div className="text-sm font-medium truncate" title={acc.displayName}>{acc.displayName}</div>
                         <div className="text-xs" style={{ color: 'var(--muted)' }}>{bankLabel(acc.bank)}</div>
                       </div>
                       <button onClick={() => { setEditId(acc.id); setEditName(acc.displayName) }}
@@ -393,8 +393,8 @@ export default function SettingsClient() {
                     <div key={u.id}>
                       <div className="flex items-center gap-3 px-4 py-3">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">{u.username}</span>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-sm font-medium truncate" title={u.username}>{u.username}</span>
                             {u.isAdmin && (
                               <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded"
                                 style={{ background: 'rgba(99,102,241,.15)', color: '#818cf8' }}>
@@ -520,7 +520,7 @@ export default function SettingsClient() {
                     <div className="flex items-center gap-1.5 min-w-0">
                       <span className="text-xs px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: 'rgba(99,102,241,.12)', color: '#818cf8' }}>{matchTypeLabel(rule.matchType)}</span>
                       <ArrowRight size={11} style={{ color: 'var(--muted)', flexShrink: 0 }} />
-                      <span className="text-sm font-medium truncate">{rule.canonicalName}</span>
+                      <span className="text-sm font-medium truncate" title={rule.canonicalName}>{rule.canonicalName}</span>
                     </div>
                   </div>
                   <button onClick={() => deleteRule(rule.id)} className="p-1 rounded hover:bg-white/10 text-red-400 flex-shrink-0">

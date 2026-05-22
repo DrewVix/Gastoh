@@ -259,8 +259,8 @@ export default function CategoriesClient() {
                       <span style={{ color: group.color ?? '#9E9E9E' }}>
                         <CategoryIcon name={group.icon} size={16} />
                       </span>
-                      <span className="flex-1 text-sm font-semibold">{group.name}</span>
-                      <span className="text-xs" style={{ color: 'var(--muted)' }}>
+                      <span className="flex-1 min-w-0 text-sm font-semibold truncate" title={group.name}>{group.name}</span>
+                      <span className="text-xs truncate flex-shrink-0" style={{ color: 'var(--muted)' }}>
                         {group.children.length} subcategorías · {totalTx} transacciones
                       </span>
                       <button
@@ -302,7 +302,7 @@ export default function CategoriesClient() {
                               <span style={{ color: cat.color ?? '#9E9E9E' }}>
                                 <CategoryIcon name={cat.icon} size={14} />
                               </span>
-                              <span className="flex-1 text-sm">{cat.name}</span>
+                              <span className="flex-1 min-w-0 text-sm truncate" title={cat.name}>{cat.name}</span>
                               <span className="text-xs" style={{ color: 'var(--muted)' }}>
                                 {cat._count.transactions} tx
                               </span>
@@ -364,8 +364,8 @@ export default function CategoriesClient() {
                         <span style={{ color: cat.color ?? '#9E9E9E' }}>
                           <CategoryIcon name={cat.icon} size={14} />
                         </span>
-                        <span className="flex-1 text-sm">{cat.name}</span>
-                        <span className="text-xs" style={{ color: 'var(--muted)' }}>
+                        <span className="flex-1 min-w-0 text-sm truncate" title={cat.name}>{cat.name}</span>
+                        <span className="text-xs truncate flex-shrink-0" style={{ color: 'var(--muted)' }}>
                           {cat._count.transactions} transacciones · {cat._count.rules} reglas
                         </span>
                         {cat.isDefault && (

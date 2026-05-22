@@ -99,11 +99,11 @@ function BreakdownPanel({
 
   return (
     <div className="card p-4 flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2 flex-wrap">
+      <div className="flex items-center justify-between gap-1 flex-wrap">
         <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
           {title}
         </span>
-        <span className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>
+        <span className="text-lg font-bold flex-shrink-0" style={{ color: 'var(--foreground)' }}>
           {eur(total)}
         </span>
       </div>

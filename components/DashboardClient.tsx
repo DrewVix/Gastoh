@@ -356,7 +356,7 @@ export default function DashboardClient() {
 
             {/* Grupos de categorías */}
             {(data.byGroup ?? []).length > 0 && (
-              <div className="card overflow-hidden min-w-0">
+              <div className="card overflow-hidden min-w-0 overflow-x-auto">
                 <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--card-border)' }}>
                   <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>
                     Gasto por categoría
@@ -431,7 +431,7 @@ export default function DashboardClient() {
                                   style={{ color: group.color }}>
                                   <CategoryIcon name={group.icon} size={14} />
                                 </span>
-                                <span className="text-sm font-semibold truncate">{group.name}</span>
+                                <span className="text-sm font-semibold truncate" title={group.name}>{group.name}</span>
                               </div>
                               <span className="text-sm font-bold tabular-nums text-right">{eur(group.total)}</span>
                               <span className="text-sm tabular-nums text-right" style={{ color: 'var(--muted)' }}>—</span>
@@ -448,7 +448,7 @@ export default function DashboardClient() {
                               style={{ gridTemplateColumns: '1fr 100px 100px 90px 60px 28px' }}>
                               <div className="flex items-center gap-2 min-w-0">
                                 <span style={{ color: group.color }}><CategoryIcon name={group.icon} size={14} /></span>
-                                <span className="text-sm font-semibold truncate">{group.name}</span>
+                                <span className="text-sm font-semibold truncate" title={group.name}>{group.name}</span>
                               </div>
                               <span className="text-sm font-bold tabular-nums text-right">{eur(group.total)}</span>
                               <span className="text-sm tabular-nums text-right" style={{ color: 'var(--muted)' }}>{eur(group.total / 3)}</span>
@@ -464,7 +464,7 @@ export default function DashboardClient() {
                               style={{ gridTemplateColumns: showProjection ? '1fr 100px 100px 90px 100px 60px 28px' : '1fr 100px 100px 90px 60px 28px' }}>
                               <div className="flex items-center gap-2 min-w-0">
                                 <span style={{ color: group.color }}><CategoryIcon name={group.icon} size={14} /></span>
-                                <span className="text-sm font-semibold truncate">{group.name}</span>
+                                <span className="text-sm font-semibold truncate" title={group.name}>{group.name}</span>
                               </div>
                               <span className="text-sm font-bold tabular-nums text-right">{eur(group.total)}</span>
                               <span className="text-sm tabular-nums text-right" style={{ color: 'var(--muted)' }}>{eur(group.total / monthsElapsed)}</span>
@@ -507,7 +507,7 @@ export default function DashboardClient() {
                                         style={{ gridTemplateColumns: '1fr 100px 100px 100px 70px 50px 28px' }}>
                                         <div className="flex items-center gap-2 min-w-0">
                                           <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: cat.color }} />
-                                          <span className="text-xs truncate" style={{ color: 'var(--muted)' }}>{cat.name}</span>
+                                          <span className="text-xs truncate" style={{ color: 'var(--muted)' }} title={cat.name}>{cat.name}</span>
                                           {cat.isRecord && (
                                             <span className="text-xs px-1 py-0.5 rounded font-semibold flex-shrink-0"
                                               style={{ background: '#EF444420', color: '#EF4444', fontSize: '9px' }}>RÉCORD</span>
@@ -538,7 +538,7 @@ export default function DashboardClient() {
                                         style={{ gridTemplateColumns: '1fr 100px 100px 90px 60px 28px' }}>
                                         <div className="flex items-center gap-2 min-w-0">
                                           <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: cat.color }} />
-                                          <span className="text-xs truncate" style={{ color: 'var(--muted)' }}>{cat.name}</span>
+                                          <span className="text-xs truncate" style={{ color: 'var(--muted)' }} title={cat.name}>{cat.name}</span>
                                         </div>
                                         <span className="text-xs font-semibold tabular-nums text-right">{eur(cat.total)}</span>
                                         <span className="text-xs tabular-nums text-right" style={{ color: 'var(--muted)' }}>{eur(cat.total / 3)}</span>
@@ -554,7 +554,7 @@ export default function DashboardClient() {
                                         style={{ gridTemplateColumns: showProjection ? '1fr 100px 100px 90px 100px 60px 28px' : '1fr 100px 100px 90px 60px 28px' }}>
                                         <div className="flex items-center gap-2 min-w-0">
                                           <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: cat.color }} />
-                                          <span className="text-xs truncate" style={{ color: 'var(--muted)' }}>{cat.name}</span>
+                                          <span className="text-xs truncate" style={{ color: 'var(--muted)' }} title={cat.name}>{cat.name}</span>
                                         </div>
                                         <span className="text-xs font-semibold tabular-nums text-right">{eur(cat.total)}</span>
                                         <span className="text-xs tabular-nums text-right" style={{ color: 'var(--muted)' }}>{eur(cat.total / monthsElapsed)}</span>
@@ -873,8 +873,8 @@ export default function DashboardClient() {
           {data.bySource.length > 1 && (
             <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
               {data.bySource.map((src) => (
-                <div key={src.source} className="card p-4">
-                  <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>{src.label}</div>
+                <div key={src.source} className="card p-4 min-w-0">
+                  <div className="text-xs font-medium uppercase tracking-wide mb-1 truncate" style={{ color: 'var(--muted)' }} title={src.label}>{src.label}</div>
                   <div className="text-xl font-semibold tabular-nums">{eur(src.total)}</div>
                   <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{src.count} transacciones</div>
                 </div>

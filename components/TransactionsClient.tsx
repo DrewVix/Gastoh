@@ -260,7 +260,7 @@ export default function TransactionsClient() {
           )}
           {merchantDropdown && !filterMerchant && (
             <div className="absolute top-full mt-1 left-0 z-30 rounded-lg overflow-hidden shadow-xl"
-              style={{ background: 'var(--card)', border: '1px solid var(--card-border)', minWidth: 220, maxHeight: 260, overflowY: 'auto' }}>
+              style={{ background: 'var(--card)', border: '1px solid var(--card-border)', minWidth: 260, maxHeight: 260, overflowY: 'auto' }}>
               {merchants
                 .filter(m => !merchantSearch || m.name.toLowerCase().includes(merchantSearch.toLowerCase()))
                 .slice(0, 30)
@@ -470,14 +470,14 @@ export default function TransactionsClient() {
                   {!tx.isTransfer && (
                     <div className="flex items-center gap-1 mt-0.5">
                       {editMerchantId === tx.id ? (
-                        <div className="flex items-center gap-1 flex-1">
+                        <div className="flex items-center gap-1 flex-1 min-w-0">
                           <input
                             autoFocus
                             type="text"
                             value={editMerchantValue}
                             onChange={e => setEditMerchantValue(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter') saveMerchant(tx.id); if (e.key === 'Escape') setEditMerchantId(null) }}
-                            className="text-xs px-2 py-0.5 rounded outline-none flex-1"
+                            className="text-xs px-2 py-0.5 rounded outline-none flex-1 max-w-[200px]"
                             style={INPUT_STYLE}
                             placeholder="Nombre del comercio"
                           />
@@ -598,10 +598,11 @@ export default function TransactionsClient() {
             <div>
               <div className="text-sm font-medium leading-snug">{tx.description}</div>
               {tx.merchantName && (
-                <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full mt-1"
-                  style={{ background: 'rgba(99,102,241,.1)', color: '#818cf8' }}>
-                  <Store size={10} />
-                  {tx.merchantName}
+                <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full mt-1 max-w-[160px] truncate"
+                  style={{ background: 'rgba(99,102,241,.1)', color: '#818cf8' }}
+                  title={tx.merchantName}>
+                  <Store size={10} className="flex-shrink-0" />
+                  <span className="truncate">{tx.merchantName}</span>
                 </span>
               )}
             </div>
@@ -619,7 +620,7 @@ export default function TransactionsClient() {
                 </select>
               ) : (
                 <button onClick={() => setEditingId(tx.id)}
-                  className="text-xs px-2.5 py-1 rounded-full transition-opacity hover:opacity-80 flex-shrink-0"
+                  className="text-xs px-2.5 py-1 rounded-full transition-opacity hover:opacity-80 flex-shrink-0 max-w-[120px] truncate"
                   style={{
                     background: tx.category?.color ? `${tx.category.color}33` : 'var(--card-border)',
                     color: tx.category?.color ?? 'var(--muted)',
@@ -631,7 +632,7 @@ export default function TransactionsClient() {
                     : 'Sin categoría'}
                 </button>
               )}
-              <span className="text-xs truncate" style={{ color: 'var(--muted)' }}>
+              <span className="text-xs truncate min-w-0" style={{ color: 'var(--muted)' }}>
                 {tx.bankAccount?.displayName ?? 'Importado'}
               </span>
             </div>

@@ -278,12 +278,13 @@ export async function GET(req: NextRequest) {
   const catMeta = catIds.length > 0
     ? await prisma.category.findMany({
         where: { id: { in: catIds } },
-        select: { id: true, parentId: true, parent: { select: { id: true, name: true, color: true, icon: true } } },
+        select: { id: true, parentId: true, isFixed: true, parent: { select: { id: true, name: true, color: true, icon: true, isFixed: true } } },
       })
     : []
   const catParentMap = new Map(catMeta.map(c => [c.id, c.parent]))
+  const catIsFixedMap = new Map(catMeta.map(c => [c.id, c.isFixed || (c.parent?.isFixed ?? false)]))
 
-  const groupMap = new Map<string, { id: string; name: string; color: string; icon: string | null; total: number; pct: number; subcategories: typeof byCategory }>()
+  const groupMap = new Map<string, { id: string; name: string; color: string; icon: string | null; isFixed: boolean; total: number; pct: number; subcategories: typeof byCategory }>()
   const ungroupedCats: typeof byCategory = []
 
   for (const cat of byCategory) {
@@ -294,7 +295,7 @@ export async function GET(req: NextRequest) {
         existing.total += cat.total
         existing.subcategories.push(cat)
       } else {
-        groupMap.set(parent.id, { id: parent.id, name: parent.name, color: parent.color ?? '#6b7280', icon: parent.icon ?? null, total: cat.total, pct: 0, subcategories: [cat] })
+        groupMap.set(parent.id, { id: parent.id, name: parent.name, color: parent.color ?? '#6b7280', icon: parent.icon ?? null, isFixed: (parent as { isFixed?: boolean }).isFixed ?? false, total: cat.total, pct: 0, subcategories: [cat] })
       }
     } else {
       ungroupedCats.push(cat)
@@ -308,8 +309,23 @@ export async function GET(req: NextRequest) {
       pct: totalExp > 0 ? (g.total / totalExp) * 100 : 0,
       subcategories: g.subcategories.sort((a, b) => b.total - a.total),
     })),
-    ...ungroupedCats.map(c => ({ id: c.id ?? '__none', name: c.name, color: c.color, icon: null, total: c.total, pct: c.pct, subcategories: [] as typeof byCategory })),
+    ...ungroupedCats.map(c => ({
+      id: c.id ?? '__none',
+      name: c.name,
+      color: c.color,
+      icon: null,
+      isFixed: c.id ? (catIsFixedMap.get(c.id) ?? false) : false,
+      total: c.total,
+      pct: c.pct,
+      subcategories: [] as typeof byCategory,
+    })),
   ].sort((a, b) => b.total - a.total)
+
+  // ── Fixed vs variable breakdown ──
+  const fixedTotal = byGroup.filter(g => g.isFixed).reduce((s, g) => s + g.total, 0)
+  const variableTotal = current.summary.totalExpenses - fixedTotal
+  const fixedBreakdown = byGroup.filter(g => g.isFixed)
+  const variableBreakdown = byGroup.filter(g => !g.isFixed)
 
   // ── Savings rate ──
   const savingsRate = finalIncome > 0
@@ -338,6 +354,10 @@ export async function GET(req: NextRequest) {
     projection,
     overallTrendPct,
     byGroup,
+    fixedTotal: Math.round(fixedTotal * 100) / 100,
+    variableTotal: Math.round(variableTotal * 100) / 100,
+    fixedBreakdown,
+    variableBreakdown,
     recurring,
     recurringTotal: Math.round(recurringTotal * 100) / 100,
   })

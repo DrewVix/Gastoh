@@ -19,6 +19,7 @@ export async function PATCH(
       icon: body.icon,
       color: body.color,
       ...(body.parentId !== undefined && { parentId: body.parentId ?? null }),
+      ...(body.isFixed !== undefined && { isFixed: body.isFixed }),
     },
     include: { parent: { select: { id: true, name: true, color: true, icon: true } } },
   })

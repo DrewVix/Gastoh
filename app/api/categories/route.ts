@@ -12,7 +12,7 @@ export async function GET() {
     include: {
       parent: { select: { id: true, name: true, color: true, icon: true } },
       children: {
-        select: { id: true, name: true, icon: true, color: true, isDefault: true, parentId: true,
+        select: { id: true, name: true, icon: true, color: true, isDefault: true, isFixed: true, parentId: true,
           _count: { select: { transactions: true, rules: true } } },
         orderBy: { name: 'asc' },
       },

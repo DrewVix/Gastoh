@@ -11,6 +11,7 @@ interface Category {
   icon: string | null
   color: string | null
   isDefault: boolean
+  isFixed: boolean
   parentId: string | null
   children: Category[]
   _count: { transactions: number; rules: number }
@@ -119,6 +120,15 @@ export default function CategoriesClient() {
     if (!confirm(`¿Eliminar "${name}"? Las transacciones quedarán sin categoría.`)) return
     await fetch(`/api/categories/${id}`, { method: 'DELETE' })
     load()
+  }
+
+  async function toggleFixed(id: string, current: boolean) {
+    await fetch(`/api/categories/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isFixed: !current }),
+    })
+    setGroups(groups.map(g => g.id === id ? { ...g, isFixed: !current } : g))
   }
 
   async function createCategory() {
@@ -253,6 +263,16 @@ export default function CategoriesClient() {
                       <span className="text-xs" style={{ color: 'var(--muted)' }}>
                         {group.children.length} subcategorías · {totalTx} transacciones
                       </span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleFixed(group.id, group.isFixed) }}
+                        className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
+                          group.isFixed
+                            ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10'
+                            : 'border-[var(--card-border)] text-[var(--muted)]'
+                        }`}
+                      >
+                        {group.isFixed ? '🔒 Fijo' : 'Variable'}
+                      </button>
                       <button onClick={(e) => { e.stopPropagation(); startEdit(group) }}
                         className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}>
                         <Pencil size={13} />

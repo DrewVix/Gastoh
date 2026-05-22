@@ -261,7 +261,7 @@ export default function ImportClient() {
         Fallback para cuando la sincronización automática no esté disponible. Exporta el CSV desde Trade Republic y súbelo aquí.
       </p>
 
-      <div className="grid gap-6 items-start" style={{ gridTemplateColumns: '1fr 280px' }}>
+      <div className="grid gap-6 items-start grid-cols-1 md:grid-cols-[1fr_280px]">
         {/* Zona principal */}
         <div className="space-y-4">
           <div>
@@ -287,15 +287,22 @@ export default function ImportClient() {
             onDragLeave={() => setDragging(false)}
             onDrop={e => { e.preventDefault(); setDragging(false); e.dataTransfer.files[0] && handleFile(e.dataTransfer.files[0]) }}
             onClick={() => inputRef.current?.click()}
-            className="rounded-xl border-2 border-dashed py-16 text-center cursor-pointer transition-colors"
+            className="rounded-xl border-2 border-dashed py-12 md:py-16 text-center cursor-pointer transition-colors"
             style={{
               borderColor: dragging ? 'var(--accent)' : 'var(--card-border)',
               background: dragging ? 'rgba(99,102,241,.06)' : 'transparent',
             }}
           >
-            <Upload className="mx-auto mb-3" size={32} style={{ color: 'var(--muted)' }} />
-            <p className="text-sm font-medium">Arrastra aquí o haz clic para seleccionar</p>
+            <Upload className="mx-auto mb-3" size={36} style={{ color: 'var(--muted)' }} />
+            <p className="text-sm font-medium">Arrastra aquí o toca para seleccionar</p>
             <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>.csv · .xlsx · .xls</p>
+            <button
+              type="button"
+              onClick={e => { e.stopPropagation(); inputRef.current?.click() }}
+              className="mt-4 px-5 py-2.5 rounded-lg text-sm font-medium"
+              style={{ background: 'var(--accent)', color: '#fff' }}>
+              Seleccionar archivo
+            </button>
             <input
               ref={inputRef} type="file" accept=".csv,.xlsx,.xls" className="hidden"
               onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])}
@@ -389,7 +396,7 @@ export default function ImportClient() {
 
         {/* Raw data preview */}
         {rows.length > 0 && (
-          <div className="overflow-x-auto rounded-lg" style={{ border: '1px solid var(--card-border)' }}>
+          <div className="overflow-x-auto rounded-lg -mx-1" style={{ border: '1px solid var(--card-border)' }}>
             <table className="w-full text-xs">
               <thead>
                 <tr style={{ background: 'rgba(255,255,255,.03)', borderBottom: '1px solid var(--card-border)' }}>
@@ -437,8 +444,8 @@ export default function ImportClient() {
       </p>
 
       <div className="card overflow-hidden mb-4">
-        <div className="overflow-y-auto" style={{ maxHeight: '400px' }}>
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '400px' }}>
+          <table className="w-full text-sm min-w-[400px]">
             <thead className="sticky top-0" style={{ background: 'var(--card)', zIndex: 1 }}>
               <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
                 <th className="px-4 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Fecha</th>

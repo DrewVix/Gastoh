@@ -221,12 +221,12 @@ export default function DashboardClient() {
     <div className="space-y-5">
 
       {/* ── Header: título + selector ── */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="text-xl font-semibold">Dashboard</h1>
         <div className="flex items-center gap-1 flex-wrap">
           {PRESETS.map((p) => (
             <button key={p.id} onClick={() => setPreset(p.id)}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+              className="px-2.5 py-1.5 rounded-lg text-xs md:text-sm font-medium transition-colors"
               style={{
                 background: preset === p.id ? 'var(--accent)' : 'var(--card)',
                 color: preset === p.id ? '#fff' : 'var(--muted)',
@@ -258,14 +258,14 @@ export default function DashboardClient() {
       {data && !loading && (
         <>
           {/* ── KPI cards ── */}
-          <div className="rounded-xl grid"
-            style={{ background: 'var(--card)', border: '1px solid var(--card-border)', gridTemplateColumns: 'repeat(4, 1fr)' }}>
+          <div className="rounded-xl grid grid-cols-2 md:grid-cols-4"
+            style={{ background: 'var(--card)', border: '1px solid var(--card-border)' }}>
 
-            <div className="px-6 py-5">
+            <div className="px-4 md:px-6 py-4 md:py-5">
               <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>
                 Gasto · <span className="normal-case font-normal">{periodLabel}</span>
               </div>
-              <div className="text-3xl font-bold tabular-nums">{eur(s!.totalExpenses)}</div>
+              <div className="text-2xl md:text-3xl font-bold tabular-nums">{eur(s!.totalExpenses)}</div>
               {s!.prev.totalExpenses > 0 && (() => {
                 const delta = s!.totalExpenses - s!.prev.totalExpenses
                 const pct = (delta / s!.prev.totalExpenses) * 100
@@ -284,9 +284,9 @@ export default function DashboardClient() {
               })()}
             </div>
 
-            <div className="px-6 py-5" style={{ borderLeft: '1px solid var(--card-border)' }}>
+            <div className="px-4 md:px-6 py-4 md:py-5" style={{ borderLeft: '1px solid var(--card-border)' }}>
               <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>Flujo neto</div>
-              <div className="text-3xl font-bold tabular-nums" style={{ color: s!.netFlow >= 0 ? '#22C55E' : '#EF4444' }}>
+              <div className="text-2xl md:text-3xl font-bold tabular-nums" style={{ color: s!.netFlow >= 0 ? '#22C55E' : '#EF4444' }}>
                 {eur(s!.netFlow)}
               </div>
               {s!.savingsRate != null && (
@@ -307,13 +307,14 @@ export default function DashboardClient() {
               )}
             </div>
 
-            <div className="px-6 py-5" style={{ borderLeft: '1px solid var(--card-border)' }}>
+            <div className="px-4 md:px-6 py-4 md:py-5 border-t md:border-t-0 border-l"
+              style={{ borderColor: 'var(--card-border)' }}>
               {data.projection ? (
                 <>
                   <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>
                     {preset === 'year' ? 'Proyección fin de año' : 'Proyección fin de mes'}
                   </div>
-                  <div className="text-3xl font-bold tabular-nums">{eur(data.projection.projected)}</div>
+                  <div className="text-2xl md:text-3xl font-bold tabular-nums">{eur(data.projection.projected)}</div>
                   <div className="mt-2 flex items-center gap-2">
                     <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--card-border)' }}>
                       <div className="h-1.5 rounded-full" style={{ width: `${data.projection.pctComplete}%`, background: 'var(--accent)' }} />
@@ -326,7 +327,7 @@ export default function DashboardClient() {
               ) : (
                 <>
                   <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>Media diaria</div>
-                  <div className="text-3xl font-bold tabular-nums">{eur(s!.avgPerDay)}<span className="text-base font-normal">/día</span></div>
+                  <div className="text-2xl md:text-3xl font-bold tabular-nums">{eur(s!.avgPerDay)}<span className="text-base font-normal">/día</span></div>
                 </>
               )}
               {data.overallTrendPct !== 0 && (
@@ -338,11 +339,12 @@ export default function DashboardClient() {
               )}
             </div>
 
-            <div className="px-6 py-5" style={{ borderLeft: '1px solid var(--card-border)' }}>
+            <div className="px-4 md:px-6 py-4 md:py-5 border-t md:border-t-0 border-l"
+              style={{ borderColor: 'var(--card-border)' }}>
               <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>
                 Gastos fijos detectados
               </div>
-              <div className="text-3xl font-bold tabular-nums">{eur(data.recurringTotal)}<span className="text-base font-normal">/mes</span></div>
+              <div className="text-2xl md:text-3xl font-bold tabular-nums">{eur(data.recurringTotal)}<span className="text-base font-normal">/mes</span></div>
               <div className="text-xs mt-2" style={{ color: 'var(--muted)' }}>
                 {data.recurring.length} pagos recurrentes identificados
               </div>
@@ -350,7 +352,7 @@ export default function DashboardClient() {
           </div>
 
           {/* ── Main grid: categorías (izq) + paneles (der) ── */}
-          <div className="grid gap-5" style={{ gridTemplateColumns: '1fr 400px' }}>
+          <div className="grid gap-5 grid-cols-1 md:grid-cols-[1fr_400px]">
 
             {/* Grupos de categorías */}
             {(data.byGroup ?? []).length > 0 && (
@@ -827,12 +829,12 @@ export default function DashboardClient() {
           </div>
 
           {/* ── Fila inferior: gráfico 12m + top transacciones ── */}
-          <div className="grid gap-5" style={{ gridTemplateColumns: '1fr 400px' }}>
+          <div className="grid gap-5 grid-cols-1 md:grid-cols-[1fr_400px]">
 
             {/* Gráfico 12 meses */}
             <div className="card p-5">
               <div className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: 'var(--muted)' }}>Evolución 12 meses</div>
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={250} className="md:!h-[200px]">
                 <BarChart data={data.trend} barGap={2}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#2a2d3a" vertical={false} />
                   <XAxis dataKey="month" tick={TICK} axisLine={false} tickLine={false} />
@@ -869,7 +871,7 @@ export default function DashboardClient() {
 
           {/* ── Cuentas ── */}
           {data.bySource.length > 1 && (
-            <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(data.bySource.length, 6)}, 1fr)` }}>
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
               {data.bySource.map((src) => (
                 <div key={src.source} className="card p-4">
                   <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>{src.label}</div>

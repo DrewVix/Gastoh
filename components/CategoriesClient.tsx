@@ -146,18 +146,20 @@ export default function CategoriesClient() {
     return (
       <div className="card p-4 space-y-3 mb-4">
         <h3 className="text-sm font-semibold">{title}</h3>
-        <div className="flex gap-3 flex-wrap items-center">
-          <IconPicker value={newIcon} onChange={setNewIcon} />
-          <input
-            type="text"
-            placeholder="Nombre"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') createCategory(); if (e.key === 'Escape') setCreating(null) }}
-            className="flex-1 min-w-[140px] px-3 py-1.5 rounded text-sm outline-none"
-            style={{ background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
-            autoFocus
-          />
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center flex-wrap">
+          <div className="flex items-center gap-3">
+            <IconPicker value={newIcon} onChange={setNewIcon} />
+            <input
+              type="text"
+              placeholder="Nombre"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') createCategory(); if (e.key === 'Escape') setCreating(null) }}
+              className="flex-1 min-w-[140px] px-3 py-2.5 rounded text-sm outline-none"
+              style={{ background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
+              autoFocus
+            />
+          </div>
           <div className="flex gap-1 flex-wrap">
             {COLORS.map((c) => (
               <button key={c} onClick={() => setNewColor(c)} className="w-5 h-5 rounded-full border-2 transition-all"
@@ -202,16 +204,20 @@ export default function CategoriesClient() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <h1 className="text-2xl font-bold">Categorías</h1>
-        <div className="flex gap-2">
-          <button onClick={() => openCreate('group')} className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg"
+        <div className="flex gap-2 flex-shrink-0">
+          <button onClick={() => openCreate('group')} className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg"
             style={{ border: '1px solid var(--card-border)', color: 'var(--muted)' }}>
-            <FolderPlus size={14} /> Nuevo grupo
+            <FolderPlus size={14} />
+            <span className="hidden sm:inline">Nuevo grupo</span>
+            <span className="sm:hidden">Grupo</span>
           </button>
-          <button onClick={() => openCreate(null)} className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg"
+          <button onClick={() => openCreate(null)} className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg"
             style={{ background: 'var(--accent)', color: '#fff' }}>
-            <Plus size={14} /> Nueva categoría
+            <Plus size={14} />
+            <span className="hidden sm:inline">Nueva categoría</span>
+            <span className="sm:hidden">Categoría</span>
           </button>
         </div>
       </div>

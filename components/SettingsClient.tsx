@@ -244,10 +244,10 @@ export default function SettingsClient() {
       <h1 className="text-xl font-semibold">Ajustes</h1>
 
       {/* Tabs */}
-      <div className="flex gap-1 flex-wrap">
+      <div className="flex gap-1 overflow-x-auto pb-1">
         {(['accounts', 'users', 'merchants'] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
-            className="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
             style={{
               background: tab === t ? 'var(--accent)' : 'var(--card)',
               color: tab === t ? '#fff' : 'var(--muted)',
@@ -276,15 +276,15 @@ export default function SettingsClient() {
 
           {creating && (
             <div className="card p-4 mb-3 space-y-3">
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <select value={newBank} onChange={(e) => setNewBank(e.target.value)}
-                  className="px-3 py-2 rounded-lg text-sm outline-none"
-                  style={{ ...INPUT_STYLE, flex: 'none' }}>
+                  className="w-full sm:w-auto px-3 py-2.5 rounded-lg text-sm outline-none"
+                  style={{ ...INPUT_STYLE }}>
                   {BANKS.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
                 </select>
                 <input type="text" placeholder='Nombre (ej. "Cuenta corriente")' value={newName}
                   onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && createAccount()}
-                  autoFocus className="flex-1 px-3 py-2 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
+                  autoFocus className="flex-1 px-3 py-2.5 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
               </div>
               {accError && <p className="text-red-400 text-xs">{accError}</p>}
               <div className="flex gap-2">
@@ -448,7 +448,7 @@ export default function SettingsClient() {
       )}
       {/* ── Merchants ── */}
       {tab === 'merchants' && (
-        <div className="grid gap-5" style={{ gridTemplateColumns: '380px 1fr' }}>
+        <div className="grid gap-5 grid-cols-1 md:grid-cols-[380px_1fr]">
           {/* Rules card */}
           <div className="card overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--card-border)' }}>

@@ -49,7 +49,7 @@ export default function Sidebar() {
       >
         {/* Logo */}
         <div className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid var(--card-border)' }}>
-          <div className="text-xl font-bold tracking-tight">Gastoh</div>
+          <div className="font-display text-xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>Gastoh</div>
           <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>Control de gastos</div>
         </div>
 
@@ -63,8 +63,8 @@ export default function Sidebar() {
                 href={href}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                 style={{
-                  background: active ? 'rgba(99,102,241,.15)' : 'transparent',
-                  color: active ? '#818cf8' : 'var(--muted)',
+                  background: active ? 'var(--accent-soft)' : 'transparent',
+                  color: active ? 'var(--accent)' : 'var(--muted)',
                   borderLeft: active ? '2px solid var(--accent)' : '2px solid transparent',
                 }}
               >
@@ -114,7 +114,7 @@ export default function Sidebar() {
               key={href}
               href={href}
               className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors"
-              style={{ color: active ? '#818cf8' : 'var(--muted)' }}
+              style={{ color: active ? 'var(--accent)' : 'var(--muted)' }}
             >
               <Icon size={20} strokeWidth={active ? 2.5 : 1.8} />
               <span className="text-[10px] font-medium leading-none">{label}</span>

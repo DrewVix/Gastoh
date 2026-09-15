@@ -33,7 +33,7 @@ function bankColor(bank: string, override?: string | null) {
   return override ?? BANKS.find((b) => b.value === bank)?.color ?? '#6b7280'
 }
 
-const INPUT_STYLE = { background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }
+const INPUT_STYLE = { background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }
 
 export default function SettingsClient() {
   const [tab, setTab] = useState<'accounts' | 'users'>('accounts')
@@ -303,7 +303,7 @@ export default function SettingsClient() {
                             <span className="text-sm font-medium truncate" title={u.username}>{u.username}</span>
                             {u.isAdmin && (
                               <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded"
-                                style={{ background: 'rgba(99,102,241,.15)', color: '#818cf8' }}>
+                                style={{ background: 'rgba(0,217,118,.15)', color: 'var(--accent)' }}>
                                 <Shield size={10} /> admin
                               </span>
                             )}

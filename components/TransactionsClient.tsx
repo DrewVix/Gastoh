@@ -30,7 +30,7 @@ function fmt(n: number) {
   return n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 })
 }
 
-const INPUT_STYLE = { background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }
+const INPUT_STYLE = { background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }
 
 interface Merchant {
   name: string
@@ -174,7 +174,7 @@ export default function TransactionsClient() {
     load()
   }
 
-  const SEL = { background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }
+  const SEL = { background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }
 
   // Count active filters for badge
   const activeFilterCount = [q, filterCategory, filterMonth, filterMerchant].filter(Boolean).length
@@ -187,7 +187,7 @@ export default function TransactionsClient() {
         <h1 className="text-xl font-semibold mr-1">Gastos</h1>
 
         <div className="flex items-center gap-2 w-52"
-          style={{ background: '#0f1117', border: '1px solid var(--card-border)', borderRadius: 8, padding: '5px 10px' }}>
+          style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', borderRadius: 8, padding: '5px 10px' }}>
           <Search size={13} style={{ color: 'var(--muted)', flexShrink: 0 }} />
           <input type="text" placeholder="Buscar..." value={q}
             onChange={(e) => { setQ(e.target.value); setPage(1) }}
@@ -239,14 +239,14 @@ export default function TransactionsClient() {
             <button
               onClick={() => { setFilterMerchant(''); setMerchantSearch(''); setPage(1) }}
               className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors hover:opacity-80"
-              style={{ background: 'rgba(99,102,241,.15)', border: '1px solid rgba(99,102,241,.4)', color: '#818cf8' }}>
+              style={{ background: 'rgba(0,217,118,.15)', border: '1px solid rgba(0,217,118,.4)', color: 'var(--accent)' }}>
               <Store size={13} />
               {filterMerchant}
               <X size={12} className="ml-0.5" />
             </button>
           ) : (
             <div className="flex items-center gap-2"
-              style={{ background: '#0f1117', border: '1px solid var(--card-border)', borderRadius: 8, padding: '5px 10px' }}>
+              style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', borderRadius: 8, padding: '5px 10px' }}>
               <Store size={13} style={{ color: 'var(--muted)', flexShrink: 0 }} />
               <input
                 type="text"
@@ -299,9 +299,9 @@ export default function TransactionsClient() {
           onClick={() => setShowFilters(v => !v)}
           className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg relative"
           style={{
-            background: activeFilterCount > 0 ? 'rgba(99,102,241,.15)' : 'var(--card)',
-            border: `1px solid ${activeFilterCount > 0 ? 'rgba(99,102,241,.4)' : 'var(--card-border)'}`,
-            color: activeFilterCount > 0 ? '#818cf8' : 'var(--muted)',
+            background: activeFilterCount > 0 ? 'rgba(0,217,118,.15)' : 'var(--card)',
+            border: `1px solid ${activeFilterCount > 0 ? 'rgba(0,217,118,.4)' : 'var(--card-border)'}`,
+            color: activeFilterCount > 0 ? 'var(--accent)' : 'var(--muted)',
           }}>
           <SlidersHorizontal size={15} />
           Filtros
@@ -318,7 +318,7 @@ export default function TransactionsClient() {
       {showFilters && (
         <div className="md:hidden card p-4 space-y-3">
           <div className="flex items-center gap-2"
-            style={{ background: '#0f1117', border: '1px solid var(--card-border)', borderRadius: 8, padding: '8px 12px' }}>
+            style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', borderRadius: 8, padding: '8px 12px' }}>
             <Search size={14} style={{ color: 'var(--muted)', flexShrink: 0 }} />
             <input type="text" placeholder="Buscar..." value={q}
               onChange={(e) => { setQ(e.target.value); setPage(1) }}
@@ -369,14 +369,14 @@ export default function TransactionsClient() {
             <button
               onClick={() => { setFilterMerchant(''); setMerchantSearch(''); setPage(1) }}
               className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm"
-              style={{ background: 'rgba(99,102,241,.15)', border: '1px solid rgba(99,102,241,.4)', color: '#818cf8' }}>
+              style={{ background: 'rgba(0,217,118,.15)', border: '1px solid rgba(0,217,118,.4)', color: 'var(--accent)' }}>
               <span className="flex items-center gap-2"><Store size={13} />{filterMerchant}</span>
               <X size={12} />
             </button>
           ) : (
             <div ref={merchantRef} className="relative">
               <div className="flex items-center gap-2"
-                style={{ background: '#0f1117', border: '1px solid var(--card-border)', borderRadius: 8, padding: '8px 12px' }}>
+                style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', borderRadius: 8, padding: '8px 12px' }}>
                 <Store size={14} style={{ color: 'var(--muted)', flexShrink: 0 }} />
                 <input
                   type="text"
@@ -425,13 +425,13 @@ export default function TransactionsClient() {
       {/* Merchant banner */}
       {filterMerchant && merchantTotal !== null && (
         <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm flex-wrap"
-          style={{ background: 'rgba(99,102,241,.08)', border: '1px solid rgba(99,102,241,.2)' }}>
-          <Store size={15} style={{ color: '#818cf8' }} />
-          <span style={{ color: '#a5b4fc' }}><strong>{filterMerchant}</strong></span>
+          style={{ background: 'rgba(0,217,118,.08)', border: '1px solid rgba(0,217,118,.2)' }}>
+          <Store size={15} style={{ color: 'var(--accent)' }} />
+          <span style={{ color: 'var(--accent)' }}><strong>{filterMerchant}</strong></span>
           <span style={{ color: 'var(--muted)' }}>·</span>
           <span style={{ color: 'var(--muted)' }}>{total} transacciones</span>
           <span style={{ color: 'var(--muted)' }}>·</span>
-          <span className="font-medium tabular-nums" style={{ color: '#EF4444' }}>{fmt(-merchantTotal)}</span>
+          <span className="font-medium tabular-nums" style={{ color: 'var(--negative)' }}>{fmt(-merchantTotal)}</span>
         </div>
       )}
 
@@ -523,7 +523,7 @@ export default function TransactionsClient() {
                     >
                       {tx.notes ? (
                         <span className="text-xs truncate max-w-[200px] px-1.5 py-0.5 rounded"
-                          style={{ background: 'rgba(99,102,241,.1)', color: '#818cf8' }}>
+                          style={{ background: 'rgba(0,217,118,.1)', color: 'var(--accent)' }}>
                           {tx.notes}
                         </span>
                       ) : (
@@ -539,7 +539,7 @@ export default function TransactionsClient() {
                 </span>
 
                 <span className="text-sm font-medium text-right tabular-nums"
-                  style={{ color: tx.isTransfer ? 'var(--muted)' : tx.amount < 0 ? '#EF4444' : '#22C55E' }}>
+                  style={{ color: tx.isTransfer ? 'var(--muted)' : tx.amount < 0 ? 'var(--negative)' : 'var(--positive)' }}>
                   {fmt(tx.amount)}
                 </span>
 
@@ -549,7 +549,7 @@ export default function TransactionsClient() {
                       onBlur={(e) => updateCategory(tx.id, e.target.value)}
                       onChange={(e) => updateCategory(tx.id, e.target.value)}
                       className="text-xs px-2 py-1 rounded outline-none w-full"
-                      style={{ background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}>
+                      style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}>
                       <option value="">Sin categoría</option>
                       {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
@@ -589,7 +589,7 @@ export default function TransactionsClient() {
                 {format(new Date(tx.date), 'dd MMM yyyy')}
               </span>
               <span className="text-base font-semibold tabular-nums flex-shrink-0"
-                style={{ color: tx.isTransfer ? 'var(--muted)' : tx.amount < 0 ? '#EF4444' : '#22C55E' }}>
+                style={{ color: tx.isTransfer ? 'var(--muted)' : tx.amount < 0 ? 'var(--negative)' : 'var(--positive)' }}>
                 {fmt(tx.amount)}
               </span>
             </div>
@@ -599,7 +599,7 @@ export default function TransactionsClient() {
               <div className="text-sm font-medium leading-snug">{tx.description}</div>
               {tx.merchantName && (
                 <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full mt-1 max-w-[160px] truncate"
-                  style={{ background: 'rgba(99,102,241,.1)', color: '#818cf8' }}
+                  style={{ background: 'rgba(0,217,118,.1)', color: 'var(--accent)' }}
                   title={tx.merchantName}>
                   <Store size={10} className="flex-shrink-0" />
                   <span className="truncate">{tx.merchantName}</span>
@@ -614,7 +614,7 @@ export default function TransactionsClient() {
                   onBlur={(e) => updateCategory(tx.id, e.target.value)}
                   onChange={(e) => updateCategory(tx.id, e.target.value)}
                   className="text-xs px-2 py-1 rounded outline-none flex-1"
-                  style={{ background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}>
+                  style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}>
                   <option value="">Sin categoría</option>
                   {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
@@ -639,7 +639,7 @@ export default function TransactionsClient() {
 
             {/* Notes */}
             {tx.notes && (
-              <div className="text-xs px-2 py-1 rounded" style={{ background: 'rgba(99,102,241,.07)', color: '#818cf8' }}>
+              <div className="text-xs px-2 py-1 rounded" style={{ background: 'rgba(0,217,118,.07)', color: 'var(--accent)' }}>
                 {tx.notes}
               </div>
             )}
@@ -697,7 +697,7 @@ export default function TransactionsClient() {
                     onClick={() => setNewType(t)}
                     className="flex-1 py-2 capitalize transition-colors"
                     style={{
-                      background: newType === t ? (t === 'gasto' ? '#EF4444' : '#22C55E') : 'transparent',
+                      background: newType === t ? (t === 'gasto' ? 'var(--negative)' : 'var(--positive)') : 'transparent',
                       color: newType === t ? '#fff' : 'var(--muted)',
                     }}>
                     {t === 'gasto' ? 'Gasto' : 'Ingreso'}

@@ -89,7 +89,7 @@ function ColSelect({ label, value, onChange, headers, required = true, optional 
         value={value}
         onChange={e => onChange(e.target.value)}
         className="w-full px-3 py-2 rounded-lg text-sm outline-none"
-        style={{ background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
+        style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
       >
         <option value="">— sin mapear —</option>
         {headers.map(h => <option key={h} value={h}>{h}</option>)}
@@ -263,7 +263,7 @@ export default function ImportClient() {
               value={accountId}
               onChange={(e) => setAccountId(e.target.value)}
               className="w-full px-3 py-2 rounded-lg text-sm outline-none"
-              style={{ background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
+              style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
             >
               <option value="">Sin especificar</option>
               {accounts.map((a) => <option key={a.id} value={a.id}>{a.displayName}</option>)}
@@ -283,7 +283,7 @@ export default function ImportClient() {
             className="rounded-xl border-2 border-dashed py-12 md:py-16 text-center cursor-pointer transition-colors"
             style={{
               borderColor: dragging ? 'var(--accent)' : 'var(--card-border)',
-              background: dragging ? 'rgba(99,102,241,.06)' : 'transparent',
+              background: dragging ? 'rgba(0,217,118,.06)' : 'transparent',
             }}
           >
             <Upload className="mx-auto mb-3" size={36} style={{ color: 'var(--muted)' }} />
@@ -343,7 +343,7 @@ export default function ImportClient() {
       {/* Bank format banners */}
       {isTR && (
         <div className="flex items-center gap-2 px-4 py-3 rounded-lg mb-4 text-sm"
-          style={{ background: 'rgba(99,102,241,.12)', border: '1px solid rgba(99,102,241,.3)', color: '#a5b4fc' }}>
+          style={{ background: 'rgba(0,217,118,.12)', border: '1px solid rgba(0,217,118,.3)', color: 'var(--accent)' }}>
           <Zap size={14} />
           <span>Formato <strong>Trade Republic</strong> detectado — columnas mapeadas automáticamente.</span>
         </div>

@@ -23,6 +23,12 @@ export async function PATCH(
     },
     include: { parent: { select: { id: true, name: true, color: true, icon: true } } },
   })
+
+  // Si esta categoría pasa a colgar de un nuevo padre, ese padre deja de ser hoja.
+  if (body.parentId) {
+    await prisma.transaction.updateMany({ where: { categoryId: body.parentId, userId }, data: { categoryId: null } })
+  }
+
   return NextResponse.json(updated)
 }
 

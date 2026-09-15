@@ -44,5 +44,10 @@ export async function POST(req: NextRequest) {
     include: { parent: { select: { id: true, name: true, color: true, icon: true } } },
   })
 
+  // El padre deja de ser una categoría hoja: sus transacciones directas quedan sin categoría.
+  if (parentId) {
+    await prisma.transaction.updateMany({ where: { categoryId: parentId, userId }, data: { categoryId: null } })
+  }
+
   return NextResponse.json(category, { status: 201 })
 }

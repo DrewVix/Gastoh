@@ -461,7 +461,7 @@ export default function DashboardClient() {
                               <span className="text-xs tabular-nums text-right" style={{ color: 'var(--muted)' }}>—</span>
                               <span className="text-xs tabular-nums text-right" style={{ color: 'var(--muted)' }}>{group.pct.toFixed(1)}%</span>
                               <span className="flex justify-end" style={{ color: 'var(--muted)' }}>
-                                {hasSubs ? (groupExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />) : <ChevronRight size={13} />}
+                                {(hasSubs ? groupExpanded : expandedCatId === group.id) ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
                               </span>
                             </div>
                           )}
@@ -477,7 +477,7 @@ export default function DashboardClient() {
                               <span className="text-right" style={{ color: 'var(--muted)' }}>—</span>
                               <span className="text-xs tabular-nums text-right" style={{ color: 'var(--muted)' }}>{group.pct.toFixed(1)}%</span>
                               <span className="flex justify-end" style={{ color: 'var(--muted)' }}>
-                                {hasSubs ? (groupExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />) : <ChevronRight size={13} />}
+                                {(hasSubs ? groupExpanded : expandedCatId === group.id) ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
                               </span>
                             </div>
                           )}
@@ -498,7 +498,7 @@ export default function DashboardClient() {
                               )}
                               <span className="text-xs tabular-nums text-right" style={{ color: 'var(--muted)' }}>{group.pct.toFixed(1)}%</span>
                               <span className="flex justify-end" style={{ color: 'var(--muted)' }}>
-                                {hasSubs ? (groupExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />) : <ChevronRight size={13} />}
+                                {(hasSubs ? groupExpanded : expandedCatId === group.id) ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
                               </span>
                             </div>
                           )}
@@ -506,6 +506,33 @@ export default function DashboardClient() {
                             <div className="h-0.5 rounded-full" style={{ width: `${Math.min(100, group.pct)}%`, background: group.color }} />
                           </div>
                         </div>
+
+                        {/* ── Transacciones cuando el grupo no tiene subcategorías (drill-down directo) ── */}
+                        {!hasSubs && expandedCatId === group.id && (
+                          <div style={{ background: 'rgba(255,255,255,.01)', borderTop: '1px solid var(--card-border)' }}>
+                            {loadingCatTxs && (
+                              <div className="py-4 flex items-center gap-2 text-sm" style={{ paddingLeft: '2.5rem', color: 'var(--muted)' }}>
+                                <RefreshCw size={12} className="animate-spin" /> Cargando...
+                              </div>
+                            )}
+                            {!loadingCatTxs && catTxs.length === 0 && (
+                              <div className="py-4 text-xs" style={{ paddingLeft: '2.5rem', color: 'var(--muted)' }}>Sin transacciones</div>
+                            )}
+                            {!loadingCatTxs && catTxs.map((tx) => (
+                              <div key={tx.id} className="flex items-center py-2 gap-3 border-t"
+                                style={{ paddingLeft: '2.5rem', paddingRight: '1.25rem', borderColor: 'var(--card-border)' }}>
+                                <span className="text-xs w-16 flex-shrink-0" style={{ color: 'var(--muted)' }}>
+                                  {format(new Date(tx.date), 'dd/MM/yy')}
+                                </span>
+                                <span className="flex-1 truncate text-xs">{tx.description}</span>
+                                <span className="text-xs font-semibold tabular-nums flex-shrink-0"
+                                  style={{ color: tx.amount < 0 ? 'var(--negative)' : 'var(--positive)' }}>
+                                  {tx.amount.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
 
                         {/* ── Subcategorías ── */}
                         {hasSubs && groupExpanded && (

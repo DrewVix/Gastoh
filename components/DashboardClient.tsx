@@ -75,6 +75,8 @@ interface DashboardData {
   overallTrendPct: number
   recurring: Array<{ name: string; monthlyAmount: number; monthCount: number; categoryName: string; categoryColor: string }>
   recurringTotal: number
+  fixedTotal: number
+  variableTotal: number
 }
 
 const PRESETS: { id: Preset; label: string }[] = [
@@ -332,7 +334,7 @@ export default function DashboardClient() {
             <div className="px-4 md:px-6 py-4 md:py-5 border-t md:border-t-0 border-l"
               style={{ borderColor: 'var(--card-border)' }}>
               <div className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
-                Gastos fijos detectados
+                Gastos recurrentes detectados
               </div>
               <div className="font-display text-2xl md:text-3xl font-semibold tabular-nums">{eur(data.recurringTotal)}<span className="text-base font-normal">/mes</span></div>
               <div className="text-xs mt-2" style={{ color: 'var(--muted)' }}>
@@ -604,7 +606,7 @@ export default function DashboardClient() {
 
               {/* Objetivo de ahorro */}
               {(preset === 'month' || preset === 'prev-month') && s && (() => {
-                const suggested = Math.max(0, Math.round(s.totalIncome - data.recurringTotal))
+                const suggested = Math.max(0, Math.round(s.totalIncome - data.fixedTotal))
                 const goal = savingsGoal ?? suggested
                 const actual = Math.max(0, s.netFlow)
                 const pct = goal > 0 ? Math.min(100, Math.round((actual / goal) * 100)) : 0
@@ -700,11 +702,11 @@ export default function DashboardClient() {
                           </div>
                           <div className="flex justify-between">
                             <span style={{ color: 'var(--muted)' }}>Gastos fijos</span>
-                            <span className="tabular-nums" style={{ color: 'var(--negative)' }}>−{eur(data.recurringTotal)}</span>
+                            <span className="tabular-nums" style={{ color: 'var(--negative)' }}>−{eur(data.fixedTotal)}</span>
                           </div>
                           <div className="flex justify-between">
                             <span style={{ color: 'var(--muted)' }}>Gasto variable</span>
-                            <span className="tabular-nums" style={{ color: 'var(--negative)' }}>−{eur(Math.max(0, s.totalExpenses - data.recurringTotal))}</span>
+                            <span className="tabular-nums" style={{ color: 'var(--negative)' }}>−{eur(data.variableTotal)}</span>
                           </div>
                           <div className="flex justify-between font-semibold pt-1" style={{ borderTop: '1px solid var(--card-border)' }}>
                             <span>Ahorro real</span>
@@ -716,7 +718,7 @@ export default function DashboardClient() {
 
                         {!savingsGoal && (
                           <p className="text-xs" style={{ color: 'var(--muted)' }}>
-                            Objetivo sugerido: ingresos − gastos fijos detectados
+                            Objetivo sugerido: ingresos − gastos fijos
                           </p>
                         )}
                       </div>
@@ -789,7 +791,7 @@ export default function DashboardClient() {
                     <div className="flex items-center gap-2">
                       <RefreshCw size={13} style={{ color: 'var(--accent)' }} />
                       <span className="text-sm font-semibold">
-                        Gastos fijos
+                        Gastos recurrentes
                       </span>
                     </div>
                     <span className="text-xs font-semibold tabular-nums" style={{ color: 'var(--muted)' }}>

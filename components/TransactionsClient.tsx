@@ -23,7 +23,6 @@ interface Transaction {
   isTransfer: boolean
   notes: string | null
   category: Category | null
-  bankAccount: { bank: string; displayName: string } | null
 }
 
 function fmt(n: number) {
@@ -164,7 +163,7 @@ export default function TransactionsClient() {
         date: newDate,
         amount: sign * Math.abs(parseFloat(newAmount)),
         description: newDesc.trim(),
-        merchantName: newMerchant.trim() || null,
+        merchantName: newType === 'gasto' ? (newMerchant.trim() || null) : null,
         categoryId: newCategory || null,
         notes: newNotes.trim() || null,
       }),
@@ -438,10 +437,9 @@ export default function TransactionsClient() {
       {/* ── Desktop Table ── */}
       <div className="hidden md:block card overflow-hidden">
         <div className="px-5 py-2.5 border-b text-xs font-semibold grid"
-          style={{ borderColor: 'var(--card-border)', color: 'var(--muted)', gridTemplateColumns: '88px 1fr 140px 110px 200px' }}>
+          style={{ borderColor: 'var(--card-border)', color: 'var(--muted)', gridTemplateColumns: '88px 1fr 110px 200px' }}>
           <span>FECHA</span>
           <span>DESCRIPCIÓN</span>
-          <span>CUENTA</span>
           <span className="text-right">IMPORTE</span>
           <span className="text-center">CATEGORÍA</span>
         </div>
@@ -456,7 +454,7 @@ export default function TransactionsClient() {
             <div key={tx.id}>
               {/* Main row */}
               <div className="px-5 py-3 grid items-center gap-2 hover:bg-white/[0.025] transition-colors"
-                style={{ gridTemplateColumns: '88px 1fr 140px 110px 200px' }}>
+                style={{ gridTemplateColumns: '88px 1fr 110px 200px' }}>
                 <div>
                   <div className="text-xs font-medium tabular-nums">{format(new Date(tx.date), 'dd MMM')}</div>
                   <div className="text-xs" style={{ color: 'var(--muted)' }}>{format(new Date(tx.date), 'yyyy')}</div>
@@ -534,10 +532,6 @@ export default function TransactionsClient() {
                   )}
                 </div>
 
-                <span className="text-xs truncate" style={{ color: 'var(--muted)' }}>
-                  {tx.bankAccount?.displayName ?? 'Importado'}
-                </span>
-
                 <span className="text-sm font-medium text-right tabular-nums"
                   style={{ color: tx.isTransfer ? 'var(--muted)' : tx.amount < 0 ? 'var(--negative)' : 'var(--positive)' }}>
                   {fmt(tx.amount)}
@@ -607,8 +601,8 @@ export default function TransactionsClient() {
               )}
             </div>
 
-            {/* Bottom row: category pill + account */}
-            <div className="flex items-center justify-between gap-2">
+            {/* Bottom row: category pill */}
+            <div className="flex items-center gap-2">
               {editingId === tx.id ? (
                 <select autoFocus defaultValue={tx.category?.id ?? ''}
                   onBlur={(e) => updateCategory(tx.id, e.target.value)}
@@ -632,9 +626,6 @@ export default function TransactionsClient() {
                     : 'Sin categoría'}
                 </button>
               )}
-              <span className="text-xs truncate min-w-0" style={{ color: 'var(--muted)' }}>
-                {tx.bankAccount?.displayName ?? 'Importado'}
-              </span>
             </div>
 
             {/* Notes */}
@@ -724,21 +715,26 @@ export default function TransactionsClient() {
 
               {/* Description */}
               <div>
-                <label className="text-xs mb-1 block" style={{ color: 'var(--muted)' }}>Descripción *</label>
-                <input required type="text" placeholder="Ej: Compra en Mercadona"
+                <label className="text-xs mb-1 block" style={{ color: 'var(--muted)' }}>
+                  {newType === 'gasto' ? 'Descripción *' : 'Concepto *'}
+                </label>
+                <input required type="text"
+                  placeholder={newType === 'gasto' ? 'Ej: Compra en Mercadona' : 'Ej: Nómina, Bizum de un amigo'}
                   value={newDesc} onChange={e => setNewDesc(e.target.value)}
                   className="w-full text-sm px-3 py-2.5 rounded-lg outline-none"
                   style={INPUT_STYLE} />
               </div>
 
-              {/* Merchant */}
-              <div>
-                <label className="text-xs mb-1 block" style={{ color: 'var(--muted)' }}>Comercio (opcional)</label>
-                <input type="text" placeholder="Ej: Mercadona"
-                  value={newMerchant} onChange={e => setNewMerchant(e.target.value)}
-                  className="w-full text-sm px-3 py-2.5 rounded-lg outline-none"
-                  style={INPUT_STYLE} />
-              </div>
+              {/* Merchant: solo para gastos */}
+              {newType === 'gasto' && (
+                <div>
+                  <label className="text-xs mb-1 block" style={{ color: 'var(--muted)' }}>Comercio (opcional)</label>
+                  <input type="text" placeholder="Ej: Mercadona"
+                    value={newMerchant} onChange={e => setNewMerchant(e.target.value)}
+                    className="w-full text-sm px-3 py-2.5 rounded-lg outline-none"
+                    style={INPUT_STYLE} />
+                </div>
+              )}
 
               {/* Category */}
               <div>

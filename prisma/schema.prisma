@@ -16,28 +16,12 @@ model User {
   createdAt    DateTime      @default(now())
   transactions Transaction[]
   categories   Category[]
-  bankAccounts BankAccount[]
-}
-
-model BankAccount {
-  id           String        @id @default(cuid())
-  userId       String
-  user         User          @relation(fields: [userId], references: [id])
-  bank         String
-  displayName  String
-  color        String?
-  createdAt    DateTime      @default(now())
-  transactions Transaction[]
-
-  @@index([userId])
 }
 
 model Transaction {
   id            String       @id @default(cuid())
   userId        String
   user          User         @relation(fields: [userId], references: [id])
-  bankAccountId String?
-  bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
   externalId    String
   date          DateTime
   amount        Float
@@ -53,11 +37,10 @@ model Transaction {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
-  @@unique([userId, bankAccountId, externalId])
+  @@unique([userId, externalId])
   @@index([userId])
   @@index([date])
   @@index([categoryId])
-  @@index([bankAccountId])
 }
 
 model Category {

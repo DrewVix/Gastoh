@@ -39,15 +39,12 @@ interface TxRow {
   description: string
   amount: number
   category: { name: string; color: string | null } | null
-  bankAccount: { displayName: string } | null
 }
 
 interface DashboardData {
   from: string
   to: string
   periodDays: number
-  incomeShifted: boolean
-  incomePeriodLabel: string | null
   summary: {
     totalExpenses: number
     totalIncome: number
@@ -70,7 +67,6 @@ interface DashboardData {
     total: number; pct: number
     subcategories: CategoryRow[]
   }>
-  bySource: Array<{ source: string; label: string; total: number; count: number }>
   topTransactions: Array<{ id: string; date: string; description: string; amount: number; category: string; categoryColor: string }>
   topMerchants: Array<{ name: string; total: number; count: number; categoryColor: string; categoryName: string }>
   trend: Array<{ month: string; expenses: number; income: number }>
@@ -168,10 +164,7 @@ export default function DashboardClient() {
     setExpandedGroupId(null)
     setExpandedCatId(null)
     setCatTxs([])
-    // Para mes actual y mes anterior: los ingresos se cuentan del mes previo
-    // porque la nómina llega antes de que empiece el mes
-    const shiftIncome = preset === 'month' || preset === 'prev-month'
-    const url = `/api/dashboard?from=${from}&to=${to}${shiftIncome ? '&shiftIncome=1' : ''}`
+    const url = `/api/dashboard?from=${from}&to=${to}`
     fetch(url)
       .then((r) => r.json())
       .then(setData)
@@ -298,7 +291,6 @@ export default function DashboardClient() {
                   {s!.totalIncome > 0 && (
                     <span className="ml-1" style={{ color: 'var(--muted)' }}>
                       · {eur(s!.totalIncome)} ingresados
-                      {data.incomeShifted && data.incomePeriodLabel && ` (nómina ${data.incomePeriodLabel})`}
                     </span>
                   )}
                 </div>
@@ -587,9 +579,6 @@ export default function DashboardClient() {
                                             {format(new Date(tx.date), 'dd/MM/yy')}
                                           </span>
                                           <span className="flex-1 truncate text-xs">{tx.description}</span>
-                                          <span className="text-xs flex-shrink-0" style={{ color: 'var(--muted)' }}>
-                                            {tx.bankAccount?.displayName ?? 'Importado'}
-                                          </span>
                                           <span className="text-xs font-semibold tabular-nums flex-shrink-0"
                                             style={{ color: tx.amount < 0 ? 'var(--negative)' : 'var(--positive)' }}>
                                             {tx.amount.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
@@ -866,19 +855,6 @@ export default function DashboardClient() {
               </div>
             )}
           </div>
-
-          {/* ── Cuentas ── */}
-          {data.bySource.length > 1 && (
-            <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-              {data.bySource.map((src) => (
-                <div key={src.source} className="card p-4 min-w-0">
-                  <div className="text-xs mb-1 truncate" style={{ color: 'var(--muted)' }} title={src.label}>{src.label}</div>
-                  <div className="font-display text-xl font-semibold tabular-nums">{eur(src.total)}</div>
-                  <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{src.count} transacciones</div>
-                </div>
-              ))}
-            </div>
-          )}
         </>
       )}
     </div>

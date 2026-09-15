@@ -12,7 +12,6 @@ export async function GET(req: NextRequest) {
   const fromParam = searchParams.get('from')
   const toParam = searchParams.get('to')
   const categoryId = searchParams.get('category')
-  const bank = searchParams.get('bank')
   const merchant = searchParams.get('merchant')
   const q = searchParams.get('q')
   const excludeTransfers = searchParams.get('excludeTransfers') === '1'
@@ -37,10 +36,6 @@ export async function GET(req: NextRequest) {
 
   if (categoryId) where.categoryId = categoryId === 'none' ? null : categoryId
 
-  if (bank) {
-    where.bankAccount = { bank }
-  }
-
   if (q) {
     where.OR = [
       { description: { contains: q } },
@@ -57,7 +52,6 @@ export async function GET(req: NextRequest) {
       where,
       include: {
         category: { select: { id: true, name: true, icon: true, color: true, parentId: true, parent: { select: { id: true, name: true, color: true, icon: true } } } },
-        bankAccount: { select: { bank: true, displayName: true } },
       },
       orderBy: { date: 'desc' },
       skip: (page - 1) * limit,
@@ -103,11 +97,9 @@ export async function POST(req: NextRequest) {
       notes: notes ? String(notes) : null,
       isTransfer: Boolean(isTransfer),
       isManual: true,
-      bankAccountId: null,
     },
     include: {
       category: { select: { id: true, name: true, icon: true, color: true, parentId: true, parent: { select: { id: true, name: true, color: true, icon: true } } } },
-      bankAccount: { select: { bank: true, displayName: true } },
     },
   })
 

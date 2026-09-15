@@ -1,6 +1,6 @@
 # Gastoh 💸
 
-Gestor personal de finanzas con importación de extractos bancarios (Trade Republic, OpenBank…), categorización 100% manual y dashboard mensual/anual.
+Gestor personal de finanzas 100% manual — registras gastos e ingresos a mano, categorización manual y dashboard mensual/anual.
 
 ## Requisitos
 
@@ -82,6 +82,6 @@ docker compose exec gastoh node setup-admin.js admin tuPassword
 
 Los datos se almacenan en un volumen Docker llamado `gastoh_data` (SQLite). Las migraciones y el seed de categorías se ejecutan automáticamente al arrancar el contenedor.
 
-## Importar transacciones
+## Uso
 
-En la app: **Importar → Selecciona tu banco**. Acepta el formato CSV de exportación estándar de Trade Republic y OpenBank.
+Todas las transacciones (gastos e ingresos) se registran a mano desde **Gastos → Nueva**. No hay importación de extractos ni sincronización con bancos.

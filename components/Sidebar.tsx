@@ -7,7 +7,7 @@ import { LayoutDashboard, List, CalendarDays, Tag, Settings, LogOut, FileBarChar
 
 const nav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/transactions', label: 'Gastos', icon: List },
+  { href: '/transactions', label: 'Transacciones', icon: List },
   { href: '/calendar', label: 'Calendario', icon: CalendarDays },
   { href: '/categories', label: 'Categorías', icon: Tag },
   { href: '/report', label: 'Informe', icon: FileBarChart2 },

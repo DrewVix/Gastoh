@@ -25,6 +25,13 @@ export default function SettingsClient() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [actionError, setActionError] = useState('')
 
+  // ── Own account (self-service password change) ──
+  const [myUsername, setMyUsername] = useState('')
+  const [myNewPw, setMyNewPw] = useState('')
+  const [myPwError, setMyPwError] = useState('')
+  const [myPwSuccess, setMyPwSuccess] = useState(false)
+  const [myPwSaving, setMyPwSaving] = useState(false)
+
   async function loadUsers() {
     setUsersLoading(true)
     const res = await fetch('/api/users')
@@ -37,12 +44,29 @@ export default function SettingsClient() {
     if (res.ok) {
       const d = await res.json()
       setCurrentUserId(d.userId)
+      setMyUsername(d.username)
       setIsAdmin(d.isAdmin === true)
       if (d.isAdmin === true) loadUsers()
     }
   }
 
   useEffect(() => { loadMe() }, [])
+
+  async function changeMyPassword() {
+    if (myNewPw.length < 6) { setMyPwError('La contraseña debe tener al menos 6 caracteres'); return }
+    setMyPwError('')
+    setMyPwSaving(true)
+    const res = await fetch(`/api/users/${currentUserId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: myNewPw }),
+    })
+    setMyPwSaving(false)
+    if (!res.ok) { const d = await res.json(); setMyPwError(d.error); return }
+    setMyNewPw('')
+    setMyPwSuccess(true)
+    setTimeout(() => setMyPwSuccess(false), 3000)
+  }
 
   // ── User actions ──
   async function createUser() {
@@ -81,6 +105,26 @@ export default function SettingsClient() {
   return (
     <div className="space-y-5">
       <h1 className="text-xl font-semibold">Ajustes</h1>
+
+      <div className="card p-4 space-y-3">
+        <h3 className="text-sm font-semibold">Mi cuenta</h3>
+        <p className="text-xs" style={{ color: 'var(--muted)' }}>
+          Sesión iniciada como <strong style={{ color: 'var(--foreground)' }}>{myUsername || '…'}</strong>
+        </p>
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+          <input type="password" placeholder="Nueva contraseña" value={myNewPw}
+            onChange={(e) => { setMyNewPw(e.target.value); setMyPwError(''); setMyPwSuccess(false) }}
+            onKeyDown={(e) => e.key === 'Enter' && changeMyPassword()}
+            className="flex-1 px-3 py-2 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
+          <button onClick={changeMyPassword} disabled={myPwSaving}
+            className="flex items-center justify-center gap-1.5 text-sm px-3 py-2 rounded-lg transition-opacity disabled:opacity-50"
+            style={{ background: 'var(--accent)', color: '#fff' }}>
+            <KeyRound size={14} /> {myPwSaving ? 'Guardando...' : 'Cambiar contraseña'}
+          </button>
+        </div>
+        {myPwError && <p className="text-xs" style={{ color: 'var(--negative)' }}>{myPwError}</p>}
+        {myPwSuccess && <p className="text-xs" style={{ color: 'var(--positive)' }}>Contraseña actualizada.</p>}
+      </div>
 
       {!isAdmin && !usersLoading && (
         <div className="card p-6 text-center text-sm" style={{ color: 'var(--muted)' }}>

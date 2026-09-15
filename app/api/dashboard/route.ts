@@ -6,9 +6,8 @@ import {
   subMonths, subDays, format, differenceInDays,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { applyRules, type MerchantRule } from '@/lib/merchant-rules'
 
-async function getPeriodData(from: Date, to: Date, userId: string, merchantRules: MerchantRule[] = []) {
+async function getPeriodData(from: Date, to: Date, userId: string) {
   const txs = await prisma.transaction.findMany({
     where: { userId, date: { gte: from, lte: to }, isTransfer: false },
     include: {
@@ -55,8 +54,7 @@ async function getPeriodData(from: Date, to: Date, userId: string, merchantRules
 
   const merchantMap = new Map<string, { name: string; total: number; count: number; categoryColor: string; categoryName: string }>()
   for (const tx of expenses) {
-    const raw = (tx.merchantName || tx.description).trim()
-    const key = applyRules(raw, merchantRules)
+    const key = (tx.merchantName || tx.description).trim()
     const cur = merchantMap.get(key)
     if (cur) { cur.total += Math.abs(tx.amount); cur.count++ }
     else merchantMap.set(key, { name: key, total: Math.abs(tx.amount), count: 1, categoryColor: tx.category?.color ?? '#6b7280', categoryName: tx.category?.name ?? 'Sin categoría' })
@@ -126,13 +124,8 @@ export async function GET(req: NextRequest) {
   // Last 3 months start for recurring detection
   const recurringStart = startOfMonth(subMonths(now, 3))
 
-  const merchantRules = await prisma.merchantRule.findMany({
-    where: { userId },
-    orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
-  })
-
   const [current, prev, shiftedIncomeTxs, trendData, baselineTxs, yearCatTxs, recurringTxs] = await Promise.all([
-    getPeriodData(from, to, userId, merchantRules),
+    getPeriodData(from, to, userId),
     getPeriodData(prevFrom, prevTo, userId),
     // Ingresos del mes anterior (nómina llega antes de que empiece el mes)
     shiftIncome
@@ -208,8 +201,7 @@ export async function GET(req: NextRequest) {
   const merchantMonthsMap = new Map<string, Set<string>>()
   const merchantMeta = new Map<string, { amounts: number[]; catName: string; catColor: string }>()
   for (const tx of recurringTxs) {
-    const raw = (tx.merchantName || tx.description).trim()
-    const key = applyRules(raw, merchantRules)
+    const key = (tx.merchantName || tx.description).trim()
     const monthKey = format(tx.date, 'yyyy-MM')
     if (!merchantMonthsMap.has(key)) merchantMonthsMap.set(key, new Set())
     merchantMonthsMap.get(key)!.add(monthKey)

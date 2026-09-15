@@ -271,10 +271,10 @@ export default function CategoriesClient() {
             const totalTx = group.children.reduce((s, c) => s + c._count.transactions, 0)
 
             return (
-              <div key={group.id} className="card overflow-hidden">
+              <div key={group.id} className="card overflow-visible">
                 {/* Cabecera del grupo */}
                 <div
-                  className="flex items-center px-4 py-3 gap-3 cursor-pointer hover:bg-white/5 transition-colors"
+                  className="flex items-center flex-wrap px-4 py-3 gap-x-3 gap-y-2 cursor-pointer hover:bg-white/5 transition-colors"
                   style={{ borderBottom: expanded ? '1px solid var(--card-border)' : 'none' }}
                   onClick={() => setExpandedGroupId(expanded ? null : group.id)}
                 >
@@ -282,26 +282,30 @@ export default function CategoriesClient() {
                     <EditRow cat={group} />
                   ) : (
                     <>
-                      <span style={{ color: group.color ?? '#9E9E9E' }}>
-                        <CategoryIcon name={group.icon} size={16} />
-                      </span>
-                      <span className="flex-1 min-w-0 text-sm font-semibold truncate" title={group.name}>{group.name}</span>
-                      <TypeBadge label="Categoría" />
-                      <span className="text-xs truncate flex-shrink-0" style={{ color: 'var(--muted)' }}>
-                        {group.children.length} subcategorías · {totalTx} transacciones
-                      </span>
-                      <FixedToggle cat={group} />
-                      <button onClick={(e) => { e.stopPropagation(); startEdit(group) }}
-                        className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}>
-                        <Pencil size={13} />
-                      </button>
-                      {!group.isDefault && (
-                        <button onClick={(e) => { e.stopPropagation(); deleteCategory(group.id, group.name) }}
-                          className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400">
-                          <Trash2 size={13} />
+                      <div className="flex items-center gap-2 min-w-0" style={{ flex: '1 1 140px' }}>
+                        <span className="flex-shrink-0" style={{ color: group.color ?? '#9E9E9E' }}>
+                          <CategoryIcon name={group.icon} size={16} />
+                        </span>
+                        <span className="min-w-0 text-sm font-semibold truncate" title={group.name}>{group.name}</span>
+                        <TypeBadge label="Categoría" />
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
+                        <span className="text-xs truncate" style={{ color: 'var(--muted)' }}>
+                          {group.children.length} subcategorías · {totalTx} transacciones
+                        </span>
+                        <FixedToggle cat={group} />
+                        <button onClick={(e) => { e.stopPropagation(); startEdit(group) }}
+                          className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}>
+                          <Pencil size={13} />
                         </button>
-                      )}
-                      {expanded ? <ChevronDown size={13} style={{ color: 'var(--muted)' }} /> : <ChevronRight size={13} style={{ color: 'var(--muted)' }} />}
+                        {!group.isDefault && (
+                          <button onClick={(e) => { e.stopPropagation(); deleteCategory(group.id, group.name) }}
+                            className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400">
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                        {expanded ? <ChevronDown size={13} style={{ color: 'var(--muted)' }} /> : <ChevronRight size={13} style={{ color: 'var(--muted)' }} />}
+                      </div>
                     </>
                   )}
                 </div>
@@ -311,36 +315,40 @@ export default function CategoriesClient() {
                   <div>
                     <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
                       {group.children.map((cat) => (
-                        <div key={cat.id} className="flex items-center gap-3 py-2.5 hover:bg-white/5 transition-colors"
+                        <div key={cat.id} className="flex items-center flex-wrap gap-x-3 gap-y-2 py-2.5 hover:bg-white/5 transition-colors"
                           style={{ paddingLeft: '2rem', paddingRight: '1rem' }}>
                           {editId === cat.id ? (
                             <EditRow cat={cat} />
                           ) : (
                             <>
-                              <span style={{ color: cat.color ?? '#9E9E9E' }}>
-                                <CategoryIcon name={cat.icon} size={14} />
-                              </span>
-                              <span className="flex-1 min-w-0 text-sm truncate" title={cat.name}>{cat.name}</span>
-                              <TypeBadge label="Subcategoría" />
-                              <span className="text-xs" style={{ color: 'var(--muted)' }}>
-                                {cat._count.transactions} tx
-                              </span>
-                              {cat.isDefault && (
-                                <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: '#00d97633', color: 'var(--accent)', fontSize: '10px' }}>
-                                  predeterminada
+                              <div className="flex items-center gap-2 min-w-0" style={{ flex: '1 1 120px' }}>
+                                <span className="flex-shrink-0" style={{ color: cat.color ?? '#9E9E9E' }}>
+                                  <CategoryIcon name={cat.icon} size={14} />
                                 </span>
-                              )}
-                              <FixedToggle cat={cat} />
-                              <button onClick={() => startEdit(cat)}
-                                className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}>
-                                <Pencil size={12} />
-                              </button>
-                              {!cat.isDefault && (
-                                <button onClick={() => deleteCategory(cat.id, cat.name)}
-                                  className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400">
-                                  <Trash2 size={12} />
+                                <span className="min-w-0 text-sm truncate" title={cat.name}>{cat.name}</span>
+                                <TypeBadge label="Subcategoría" />
+                              </div>
+                              <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
+                                <span className="text-xs" style={{ color: 'var(--muted)' }}>
+                                  {cat._count.transactions} tx
+                                </span>
+                                {cat.isDefault && (
+                                  <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: '#00d97633', color: 'var(--accent)', fontSize: '10px' }}>
+                                    predeterminada
+                                  </span>
+                                )}
+                                <FixedToggle cat={cat} />
+                                <button onClick={() => startEdit(cat)}
+                                  className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}>
+                                  <Pencil size={12} />
                                 </button>
-                              )}
+                                {!cat.isDefault && (
+                                  <button onClick={() => deleteCategory(cat.id, cat.name)}
+                                    className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400">
+                                    <Trash2 size={12} />
+                                  </button>
+                                )}
+                              </div>
                             </>
                           )}
                         </div>
@@ -367,7 +375,7 @@ export default function CategoriesClient() {
 
           {/* ── Sin grupo ── */}
           {ungrouped.length > 0 && (
-            <div className="card overflow-hidden">
+            <div className="card overflow-visible">
               <div className="px-4 py-2" style={{ borderBottom: '1px solid var(--card-border)' }}>
                 <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Sin grupo</span>
               </div>
@@ -376,38 +384,42 @@ export default function CategoriesClient() {
                   const addingSubHere = typeof creating === 'object' && creating.parentId === cat.id
                   return (
                     <div key={cat.id}>
-                      <div className="flex items-center px-4 py-3 gap-3 hover:bg-white/5 transition-colors">
+                      <div className="flex items-center flex-wrap px-4 py-3 gap-x-3 gap-y-2 hover:bg-white/5 transition-colors">
                         {editId === cat.id ? (
                           <EditRow cat={cat} />
                         ) : (
                           <>
-                            <span style={{ color: cat.color ?? '#9E9E9E' }}>
-                              <CategoryIcon name={cat.icon} size={14} />
-                            </span>
-                            <span className="flex-1 min-w-0 text-sm truncate" title={cat.name}>{cat.name}</span>
-                            <TypeBadge label="Categoría" />
-                            <span className="text-xs truncate flex-shrink-0" style={{ color: 'var(--muted)' }}>
-                              {cat._count.transactions} transacciones
-                            </span>
-                            {cat.isDefault && (
-                              <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#00d97633', color: 'var(--accent)' }}>
-                                predeterminada
+                            <div className="flex items-center gap-2 min-w-0" style={{ flex: '1 1 140px' }}>
+                              <span className="flex-shrink-0" style={{ color: cat.color ?? '#9E9E9E' }}>
+                                <CategoryIcon name={cat.icon} size={14} />
                               </span>
-                            )}
-                            <FixedToggle cat={cat} />
-                            <button onClick={() => openCreate({ parentId: cat.id })}
-                              className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
-                              title="Añadir subcategoría (convierte esta categoría en un grupo)">
-                              <FolderPlus size={13} />
-                            </button>
-                            <button onClick={() => startEdit(cat)} className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}>
-                              <Pencil size={13} />
-                            </button>
-                            {!cat.isDefault && (
-                              <button onClick={() => deleteCategory(cat.id, cat.name)} className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400">
-                                <Trash2 size={13} />
+                              <span className="min-w-0 text-sm truncate" title={cat.name}>{cat.name}</span>
+                              <TypeBadge label="Categoría" />
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
+                              <span className="text-xs truncate" style={{ color: 'var(--muted)' }}>
+                                {cat._count.transactions} transacciones
+                              </span>
+                              {cat.isDefault && (
+                                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#00d97633', color: 'var(--accent)' }}>
+                                  predeterminada
+                                </span>
+                              )}
+                              <FixedToggle cat={cat} />
+                              <button onClick={() => openCreate({ parentId: cat.id })}
+                                className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
+                                title="Añadir subcategoría (convierte esta categoría en un grupo)">
+                                <FolderPlus size={13} />
                               </button>
-                            )}
+                              <button onClick={() => startEdit(cat)} className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}>
+                                <Pencil size={13} />
+                              </button>
+                              {!cat.isDefault && (
+                                <button onClick={() => deleteCategory(cat.id, cat.name)} className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400">
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
+                            </div>
                           </>
                         )}
                       </div>

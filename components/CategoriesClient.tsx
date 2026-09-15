@@ -81,8 +81,8 @@ export default function CategoriesClient() {
   const [editColor, setEditColor] = useState('')
 
   // Creating
-  type CreateMode = null | 'group' | { parentId: string }
-  const [creating, setCreating] = useState<CreateMode>(null)
+  type CreateMode = 'closed' | 'group' | 'ungrouped' | { parentId: string }
+  const [creating, setCreating] = useState<CreateMode>('closed')
   const [newName, setNewName] = useState('')
   const [newIcon, setNewIcon] = useState('')
   const [newColor, setNewColor] = useState('#6366F1')
@@ -148,13 +148,13 @@ export default function CategoriesClient() {
 
   async function createCategory() {
     if (!newName.trim()) return
-    const parentId = typeof creating === 'object' && creating !== null ? creating.parentId : null
+    const parentId = typeof creating === 'object' ? creating.parentId : null
     await fetch('/api/categories', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: newName, icon: newIcon, color: newColor, parentId }),
     })
-    setCreating(null)
+    setCreating('closed')
     setNewName('')
     setNewIcon('')
     load()
@@ -179,7 +179,7 @@ export default function CategoriesClient() {
               placeholder="Nombre"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') createCategory(); if (e.key === 'Escape') setCreating(null) }}
+              onKeyDown={(e) => { if (e.key === 'Enter') createCategory(); if (e.key === 'Escape') setCreating('closed') }}
               className="flex-1 min-w-[140px] px-3 py-2.5 rounded text-sm outline-none"
               style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
               autoFocus
@@ -197,7 +197,7 @@ export default function CategoriesClient() {
             style={{ background: 'var(--accent)', color: '#fff' }}>
             <Check size={14} /> Crear
           </button>
-          <button onClick={() => setCreating(null)} className="flex items-center gap-1 text-sm px-3 py-1.5 rounded"
+          <button onClick={() => setCreating('closed')} className="flex items-center gap-1 text-sm px-3 py-1.5 rounded"
             style={{ background: 'var(--card-border)', color: 'var(--muted)' }}>
             <X size={14} /> Cancelar
           </button>
@@ -238,7 +238,7 @@ export default function CategoriesClient() {
             <span className="hidden sm:inline">Nuevo grupo</span>
             <span className="sm:hidden">Grupo</span>
           </button>
-          <button onClick={() => openCreate(null)} className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg"
+          <button onClick={() => openCreate('ungrouped')} className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg"
             style={{ background: 'var(--accent)', color: '#fff' }}>
             <Plus size={14} />
             <span className="hidden sm:inline">Nueva categoría</span>
@@ -248,7 +248,7 @@ export default function CategoriesClient() {
       </div>
 
       {creating === 'group' && <CreateForm title="Nuevo grupo de categorías" />}
-      {creating === null && <CreateForm title="Nueva categoría (sin grupo)" />}
+      {creating === 'ungrouped' && <CreateForm title="Nueva categoría (sin grupo)" />}
 
       {loading && <div className="py-12 text-center" style={{ color: 'var(--muted)' }}>Cargando...</div>}
 
@@ -334,7 +334,7 @@ export default function CategoriesClient() {
                       ))}
                     </div>
                     {/* Botón añadir subcategoría */}
-                    {typeof creating === 'object' && creating !== null && creating.parentId === group.id ? (
+                    {typeof creating === 'object' && creating.parentId === group.id ? (
                       <div className="p-3" style={{ borderTop: '1px solid var(--card-border)' }}>
                         <CreateForm title={`Nueva subcategoría en ${group.name}`} />
                       </div>
@@ -359,37 +359,52 @@ export default function CategoriesClient() {
                 <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Sin grupo</span>
               </div>
               <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
-                {ungrouped.map((cat) => (
-                  <div key={cat.id} className="flex items-center px-4 py-3 gap-3 hover:bg-white/5 transition-colors">
-                    {editId === cat.id ? (
-                      <EditRow cat={cat} />
-                    ) : (
-                      <>
-                        <span style={{ color: cat.color ?? '#9E9E9E' }}>
-                          <CategoryIcon name={cat.icon} size={14} />
-                        </span>
-                        <span className="flex-1 min-w-0 text-sm truncate" title={cat.name}>{cat.name}</span>
-                        <span className="text-xs truncate flex-shrink-0" style={{ color: 'var(--muted)' }}>
-                          {cat._count.transactions} transacciones
-                        </span>
-                        {cat.isDefault && (
-                          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#00d97633', color: 'var(--accent)' }}>
-                            predeterminada
-                          </span>
+                {ungrouped.map((cat) => {
+                  const addingSubHere = typeof creating === 'object' && creating.parentId === cat.id
+                  return (
+                    <div key={cat.id}>
+                      <div className="flex items-center px-4 py-3 gap-3 hover:bg-white/5 transition-colors">
+                        {editId === cat.id ? (
+                          <EditRow cat={cat} />
+                        ) : (
+                          <>
+                            <span style={{ color: cat.color ?? '#9E9E9E' }}>
+                              <CategoryIcon name={cat.icon} size={14} />
+                            </span>
+                            <span className="flex-1 min-w-0 text-sm truncate" title={cat.name}>{cat.name}</span>
+                            <span className="text-xs truncate flex-shrink-0" style={{ color: 'var(--muted)' }}>
+                              {cat._count.transactions} transacciones
+                            </span>
+                            {cat.isDefault && (
+                              <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#00d97633', color: 'var(--accent)' }}>
+                                predeterminada
+                              </span>
+                            )}
+                            <FixedToggle cat={cat} />
+                            <button onClick={() => openCreate({ parentId: cat.id })}
+                              className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
+                              title="Añadir subcategoría (convierte esta categoría en un grupo)">
+                              <FolderPlus size={13} />
+                            </button>
+                            <button onClick={() => startEdit(cat)} className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}>
+                              <Pencil size={13} />
+                            </button>
+                            {!cat.isDefault && (
+                              <button onClick={() => deleteCategory(cat.id, cat.name)} className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400">
+                                <Trash2 size={13} />
+                              </button>
+                            )}
+                          </>
                         )}
-                        <FixedToggle cat={cat} />
-                        <button onClick={() => startEdit(cat)} className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}>
-                          <Pencil size={13} />
-                        </button>
-                        {!cat.isDefault && (
-                          <button onClick={() => deleteCategory(cat.id, cat.name)} className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400">
-                            <Trash2 size={13} />
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                ))}
+                      </div>
+                      {addingSubHere && (
+                        <div className="px-4 pb-3" style={{ borderTop: '1px solid var(--card-border)', paddingTop: '0.75rem' }}>
+                          <CreateForm title={`Nueva subcategoría en ${cat.name}`} />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}

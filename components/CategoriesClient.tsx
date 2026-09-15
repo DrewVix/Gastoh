@@ -128,7 +128,22 @@ export default function CategoriesClient() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isFixed: !current }),
     })
-    setGroups(groups.map(g => g.id === id ? { ...g, isFixed: !current } : g))
+    load()
+  }
+
+  function FixedToggle({ cat }: { cat: Category }) {
+    return (
+      <button
+        onClick={(e) => { e.stopPropagation(); toggleFixed(cat.id, cat.isFixed) }}
+        className={`text-xs px-2 py-0.5 rounded-full border transition-colors flex-shrink-0 ${
+          cat.isFixed
+            ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10'
+            : 'border-[var(--card-border)] text-[var(--muted)]'
+        }`}
+      >
+        {cat.isFixed ? '🔒 Fijo' : 'Variable'}
+      </button>
+    )
   }
 
   async function createCategory() {
@@ -263,16 +278,7 @@ export default function CategoriesClient() {
                       <span className="text-xs truncate flex-shrink-0" style={{ color: 'var(--muted)' }}>
                         {group.children.length} subcategorías · {totalTx} transacciones
                       </span>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleFixed(group.id, group.isFixed) }}
-                        className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
-                          group.isFixed
-                            ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10'
-                            : 'border-[var(--card-border)] text-[var(--muted)]'
-                        }`}
-                      >
-                        {group.isFixed ? '🔒 Fijo' : 'Variable'}
-                      </button>
+                      <FixedToggle cat={group} />
                       <button onClick={(e) => { e.stopPropagation(); startEdit(group) }}
                         className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}>
                         <Pencil size={13} />
@@ -311,6 +317,7 @@ export default function CategoriesClient() {
                                   predeterminada
                                 </span>
                               )}
+                              <FixedToggle cat={cat} />
                               <button onClick={() => startEdit(cat)}
                                 className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}>
                                 <Pencil size={12} />
@@ -370,6 +377,7 @@ export default function CategoriesClient() {
                             predeterminada
                           </span>
                         )}
+                        <FixedToggle cat={cat} />
                         <button onClick={() => startEdit(cat)} className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}>
                           <Pencil size={13} />
                         </button>

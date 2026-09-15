@@ -41,6 +41,10 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: 'Debe existir al menos un usuario' }, { status: 400 })
   }
 
-  await prisma.user.delete({ where: { id } })
+  await prisma.$transaction([
+    prisma.transaction.deleteMany({ where: { userId: id } }),
+    prisma.category.deleteMany({ where: { userId: id } }),
+    prisma.user.delete({ where: { id } }),
+  ])
   return NextResponse.json({ ok: true })
 }

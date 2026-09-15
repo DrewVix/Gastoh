@@ -23,7 +23,6 @@ export async function GET(req: NextRequest) {
       date: true,
       amount: true,
       description: true,
-      merchantName: true,
       category: { select: { name: true, color: true } },
     },
     orderBy: { date: 'asc' },

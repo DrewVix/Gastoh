@@ -6,7 +6,6 @@ export interface TransactionWithCategory {
   amount: number
   currency: string
   description: string
-  merchantName: string | null
   isManual: boolean
   notes: string | null
   source: BankType

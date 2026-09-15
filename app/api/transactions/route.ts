@@ -12,7 +12,6 @@ export async function GET(req: NextRequest) {
   const fromParam = searchParams.get('from')
   const toParam = searchParams.get('to')
   const categoryId = searchParams.get('category')
-  const merchant = searchParams.get('merchant')
   const q = searchParams.get('q')
   const type = searchParams.get('type') // 'gasto' | 'ingreso' | 'transferencia' | null (todos)
   const fixed = searchParams.get('fixed') // 'fixed' | 'variable' | null (todos)
@@ -41,8 +40,6 @@ export async function GET(req: NextRequest) {
 
   if (categoryId) where.categoryId = categoryId === 'none' ? null : categoryId
 
-  if (merchant) where.merchantName = merchant
-
   // Tipo: por defecto (sin filtro) se excluyen las transferencias, igual que antes.
   if (type === 'transferencia') {
     where.isTransfer = true
@@ -56,7 +53,7 @@ export async function GET(req: NextRequest) {
   const and: any[] = []
 
   if (q) {
-    and.push({ OR: [{ description: { contains: q } }, { merchantName: { contains: q } }] })
+    and.push({ description: { contains: q } })
   }
 
   // Fijo/variable: se marca por categoría (subcategoría o grupo), sin herencia.
@@ -77,7 +74,7 @@ export async function GET(req: NextRequest) {
 
   if (and.length) where.AND = and
 
-  const [transactions, total, merchantSum] = await Promise.all([
+  const [transactions, total] = await Promise.all([
     prisma.transaction.findMany({
       where,
       include: {
@@ -88,18 +85,9 @@ export async function GET(req: NextRequest) {
       take: limit,
     }),
     prisma.transaction.count({ where }),
-    merchant
-      ? prisma.transaction.aggregate({ where, _sum: { amount: true } })
-      : Promise.resolve(null),
   ])
 
-  return NextResponse.json({
-    transactions,
-    total,
-    page,
-    limit,
-    ...(merchantSum && { merchantTotal: merchantSum._sum.amount ?? 0 }),
-  })
+  return NextResponse.json({ transactions, total, page, limit })
 }
 
 export async function POST(req: NextRequest) {
@@ -108,10 +96,17 @@ export async function POST(req: NextRequest) {
   const userId = session.userId!
 
   const body = await req.json()
-  const { date, amount, description, merchantName, categoryId, notes, isTransfer, currency } = body
+  const { date, amount, description, categoryId, notes, isTransfer, currency } = body
 
   if (!date || amount === undefined || !description) {
     return NextResponse.json({ error: 'date, amount y description son requeridos' }, { status: 400 })
+  }
+
+  if (categoryId) {
+    const category = await prisma.category.findFirst({ where: { id: categoryId, userId }, select: { _count: { select: { children: true } } } })
+    if (category && category._count.children > 0) {
+      return NextResponse.json({ error: 'Elige una subcategoría, no se puede asignar una categoría con subcategorías' }, { status: 400 })
+    }
   }
 
   const tx = await prisma.transaction.create({
@@ -122,7 +117,6 @@ export async function POST(req: NextRequest) {
       amount: Number(amount),
       currency: currency ?? 'EUR',
       description: String(description),
-      merchantName: merchantName ? String(merchantName) : null,
       categoryId: categoryId ?? null,
       notes: notes ? String(notes) : null,
       isTransfer: Boolean(isTransfer),

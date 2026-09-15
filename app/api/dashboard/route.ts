@@ -41,14 +41,14 @@ async function getPeriodData(from: Date, to: Date, userId: string) {
     categoryColor: tx.category?.color ?? '#6b7280',
   }))
 
-  const merchantMap = new Map<string, { name: string; total: number; count: number; categoryColor: string; categoryName: string }>()
+  const descMap = new Map<string, { name: string; total: number; count: number; categoryColor: string; categoryName: string }>()
   for (const tx of expenses) {
-    const key = (tx.merchantName || tx.description).trim()
-    const cur = merchantMap.get(key)
+    const key = tx.description.trim()
+    const cur = descMap.get(key)
     if (cur) { cur.total += Math.abs(tx.amount); cur.count++ }
-    else merchantMap.set(key, { name: key, total: Math.abs(tx.amount), count: 1, categoryColor: tx.category?.color ?? '#6b7280', categoryName: tx.category?.name ?? 'Sin categoría' })
+    else descMap.set(key, { name: key, total: Math.abs(tx.amount), count: 1, categoryColor: tx.category?.color ?? '#6b7280', categoryName: tx.category?.name ?? 'Sin categoría' })
   }
-  const topMerchants = Array.from(merchantMap.values()).sort((a, b) => b.total - a.total).slice(0, 10)
+  const topMerchants = Array.from(descMap.values()).sort((a, b) => b.total - a.total).slice(0, 10)
 
   return {
     summary: {
@@ -134,7 +134,7 @@ export async function GET(req: NextRequest) {
     // Recent 3 months for recurring expense detection
     prisma.transaction.findMany({
       where: { userId, date: { gte: recurringStart }, amount: { lt: 0 }, isTransfer: false },
-      select: { amount: true, description: true, merchantName: true, date: true, category: { select: { name: true, color: true } } },
+      select: { amount: true, description: true, date: true, category: { select: { name: true, color: true } } },
     }),
   ])
 
@@ -172,20 +172,20 @@ export async function GET(req: NextRequest) {
   }
 
   // ── Recurring expense detection ──
-  const merchantMonthsMap = new Map<string, Set<string>>()
-  const merchantMeta = new Map<string, { amounts: number[]; catName: string; catColor: string }>()
+  const descMonthsMap = new Map<string, Set<string>>()
+  const descMeta = new Map<string, { amounts: number[]; catName: string; catColor: string }>()
   for (const tx of recurringTxs) {
-    const key = (tx.merchantName || tx.description).trim()
+    const key = tx.description.trim()
     const monthKey = format(tx.date, 'yyyy-MM')
-    if (!merchantMonthsMap.has(key)) merchantMonthsMap.set(key, new Set())
-    merchantMonthsMap.get(key)!.add(monthKey)
-    if (!merchantMeta.has(key)) merchantMeta.set(key, { amounts: [], catName: tx.category?.name ?? 'Sin categoría', catColor: tx.category?.color ?? '#6b7280' })
-    merchantMeta.get(key)!.amounts.push(Math.abs(tx.amount))
+    if (!descMonthsMap.has(key)) descMonthsMap.set(key, new Set())
+    descMonthsMap.get(key)!.add(monthKey)
+    if (!descMeta.has(key)) descMeta.set(key, { amounts: [], catName: tx.category?.name ?? 'Sin categoría', catColor: tx.category?.color ?? '#6b7280' })
+    descMeta.get(key)!.amounts.push(Math.abs(tx.amount))
   }
-  const recurring = Array.from(merchantMonthsMap.entries())
+  const recurring = Array.from(descMonthsMap.entries())
     .filter(([, months]) => months.size >= 2)
     .map(([name, months]) => {
-      const meta = merchantMeta.get(name)!
+      const meta = descMeta.get(name)!
       const avg = meta.amounts.reduce((s, v) => s + v, 0) / meta.amounts.length
       return { name, monthlyAmount: Math.round(avg * 100) / 100, monthCount: months.size, categoryName: meta.catName, categoryColor: meta.catColor }
     })

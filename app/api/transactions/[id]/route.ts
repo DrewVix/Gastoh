@@ -12,7 +12,7 @@ export async function PATCH(
 
   const { id } = await params
   const body = await req.json()
-  const { date, amount, description, categoryId, notes, isTransfer, merchantName } = body
+  const { date, amount, description, categoryId, notes, isTransfer } = body
 
   const updated = await prisma.transaction.update({
     where: { id, userId },
@@ -23,7 +23,6 @@ export async function PATCH(
       ...(categoryId !== undefined && { categoryId, isManual: true }),
       ...(notes !== undefined && { notes }),
       ...(isTransfer !== undefined && { isTransfer }),
-      ...(merchantName !== undefined && { merchantName: merchantName || null }),
     },
     include: {
       category: { select: { id: true, name: true, icon: true, color: true } },

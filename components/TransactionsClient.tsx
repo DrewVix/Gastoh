@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { format } from 'date-fns'
-import { Search, ChevronLeft, ChevronRight, Pencil, Check, X, Plus, Store, SlidersHorizontal, Trash2 } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight, Pencil, Check, X, Plus, SlidersHorizontal, Trash2 } from 'lucide-react'
 
 interface Category {
   id: string
@@ -21,7 +21,6 @@ interface Transaction {
   id: string
   date: string
   description: string
-  merchantName: string | null
   amount: number
   currency: string
   isManual: boolean
@@ -36,23 +35,15 @@ function fmt(n: number) {
 
 const INPUT_STYLE = { background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }
 
-interface Merchant {
-  name: string
-  count: number
-  total: number
-}
-
 export default function TransactionsClient() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [total, setTotal] = useState(0)
   const [categories, setCategories] = useState<Category[]>([])
-  const [merchants, setMerchants] = useState<Merchant[]>([])
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [q, setQ] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
   const [filterMonth, setFilterMonth] = useState('')
-  const [filterMerchant, setFilterMerchant] = useState('')
   const [filterType, setFilterType] = useState<'' | 'gasto' | 'ingreso' | 'transferencia'>('')
   const [filterFixed, setFilterFixed] = useState<'' | 'fixed' | 'variable'>('')
   const [filterMinAmount, setFilterMinAmount] = useState('')
@@ -60,11 +51,7 @@ export default function TransactionsClient() {
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [showMoreFilters, setShowMoreFilters] = useState(false)
-  const [merchantSearch, setMerchantSearch] = useState('')
-  const [merchantDropdown, setMerchantDropdown] = useState(false)
-  const [merchantTotal, setMerchantTotal] = useState<number | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const merchantRef = useRef<HTMLDivElement>(null)
 
   // Mobile filter panel state
   const [showFilters, setShowFilters] = useState(false)
@@ -73,10 +60,6 @@ export default function TransactionsClient() {
   const [editNotesId, setEditNotesId] = useState<string | null>(null)
   const [editNotesValue, setEditNotesValue] = useState('')
 
-  // Merchant editing
-  const [editMerchantId, setEditMerchantId] = useState<string | null>(null)
-  const [editMerchantValue, setEditMerchantValue] = useState('')
-
   // New/edit transaction modal
   const [showNewModal, setShowNewModal] = useState(false)
   const [editTxId, setEditTxId] = useState<string | null>(null)
@@ -84,7 +67,6 @@ export default function TransactionsClient() {
   const [newAmount, setNewAmount] = useState('')
   const [newType, setNewType] = useState<'gasto' | 'ingreso'>('gasto')
   const [newDesc, setNewDesc] = useState('')
-  const [newMerchant, setNewMerchant] = useState('')
   const [newCategory, setNewCategory] = useState('')
   const [newNotes, setNewNotes] = useState('')
   const [newIsTransfer, setNewIsTransfer] = useState(false)
@@ -100,7 +82,6 @@ export default function TransactionsClient() {
       ...(q && { q }),
       ...(filterCategory && { category: filterCategory }),
       ...(filterMonth && { month: filterMonth }),
-      ...(filterMerchant && { merchant: filterMerchant }),
       ...(filterType && { type: filterType }),
       ...(filterFixed && { fixed: filterFixed }),
       ...(filterMinAmount && { minAmount: filterMinAmount }),
@@ -112,25 +93,12 @@ export default function TransactionsClient() {
     const data = await res.json()
     setTransactions(data.transactions ?? [])
     setTotal(data.total ?? 0)
-    setMerchantTotal(data.merchantTotal ?? null)
     setLoading(false)
-  }, [page, q, filterCategory, filterMonth, filterMerchant, filterType, filterFixed, filterMinAmount, filterMaxAmount, sortBy, sortDir])
+  }, [page, q, filterCategory, filterMonth, filterType, filterFixed, filterMinAmount, filterMaxAmount, sortBy, sortDir])
 
   useEffect(() => { load() }, [load])
   useEffect(() => {
     fetch('/api/categories').then((r) => r.json()).then((d) => setCategories(d?.flat ?? []))
-    fetch('/api/merchants').then((r) => r.json()).then((d) => setMerchants(Array.isArray(d) ? d : []))
-  }, [])
-
-  // Close merchant dropdown on outside click
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (merchantRef.current && !merchantRef.current.contains(e.target as Node)) {
-        setMerchantDropdown(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
   }, [])
 
   async function patch(id: string, body: object) {
@@ -152,11 +120,6 @@ export default function TransactionsClient() {
     setEditNotesId(null)
   }
 
-  async function saveMerchant(id: string) {
-    await patch(id, { merchantName: editMerchantValue.trim() || null })
-    setEditMerchantId(null)
-  }
-
   const totalPages = Math.ceil(total / limit)
 
   function openNewModal() {
@@ -165,7 +128,6 @@ export default function TransactionsClient() {
     setNewAmount('')
     setNewType('gasto')
     setNewDesc('')
-    setNewMerchant('')
     setNewCategory('')
     setNewNotes('')
     setNewIsTransfer(false)
@@ -178,7 +140,6 @@ export default function TransactionsClient() {
     setNewAmount(String(Math.abs(tx.amount)))
     setNewType(tx.amount < 0 ? 'gasto' : 'ingreso')
     setNewDesc(tx.description)
-    setNewMerchant(tx.merchantName ?? '')
     setNewCategory(tx.category?.id ?? '')
     setNewNotes(tx.notes ?? '')
     setNewIsTransfer(tx.isTransfer)
@@ -194,7 +155,6 @@ export default function TransactionsClient() {
       date: newDate,
       amount: sign * Math.abs(parseFloat(newAmount)),
       description: newDesc.trim(),
-      merchantName: newType === 'gasto' ? (newMerchant.trim() || null) : null,
       categoryId: newCategory || null,
       notes: newNotes.trim() || null,
       isTransfer: newIsTransfer,
@@ -219,7 +179,7 @@ export default function TransactionsClient() {
   const SEL = { background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }
 
   // Count active filters for badge
-  const activeFilterCount = [q, filterCategory, filterMonth, filterMerchant, filterType, filterFixed, filterMinAmount, filterMaxAmount].filter(Boolean).length
+  const activeFilterCount = [q, filterCategory, filterMonth, filterType, filterFixed, filterMinAmount, filterMaxAmount].filter(Boolean).length
     + (sortBy !== 'date' || sortDir !== 'desc' ? 1 : 0)
 
   return (
@@ -283,54 +243,6 @@ export default function TransactionsClient() {
             )
           })()}
         </select>
-
-        {/* Merchant filter */}
-        <div ref={merchantRef} className="relative">
-          {filterMerchant ? (
-            <button
-              onClick={() => { setFilterMerchant(''); setMerchantSearch(''); setPage(1) }}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors hover:opacity-80"
-              style={{ background: 'rgba(0,217,118,.15)', border: '1px solid rgba(0,217,118,.4)', color: 'var(--accent)' }}>
-              <Store size={13} />
-              {filterMerchant}
-              <X size={12} className="ml-0.5" />
-            </button>
-          ) : (
-            <div className="flex items-center gap-2"
-              style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', borderRadius: 8, padding: '5px 10px' }}>
-              <Store size={13} style={{ color: 'var(--muted)', flexShrink: 0 }} />
-              <input
-                type="text"
-                placeholder="Comercio..."
-                value={merchantSearch}
-                onChange={(e) => { setMerchantSearch(e.target.value); setMerchantDropdown(true) }}
-                onFocus={() => setMerchantDropdown(true)}
-                className="text-sm bg-transparent outline-none w-32"
-              />
-            </div>
-          )}
-          {merchantDropdown && !filterMerchant && (
-            <div className="absolute top-full mt-1 left-0 z-30 rounded-lg overflow-hidden shadow-xl"
-              style={{ background: 'var(--card)', border: '1px solid var(--card-border)', minWidth: 260, maxHeight: 260, overflowY: 'auto' }}>
-              {merchants
-                .filter(m => !merchantSearch || m.name.toLowerCase().includes(merchantSearch.toLowerCase()))
-                .slice(0, 30)
-                .map(m => (
-                  <button key={m.name}
-                    className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-white/[0.06] transition-colors text-left"
-                    onClick={() => { setFilterMerchant(m.name); setMerchantSearch(''); setMerchantDropdown(false); setPage(1) }}>
-                    <span className="truncate flex-1">{m.name}</span>
-                    <span className="text-xs ml-2 tabular-nums flex-shrink-0" style={{ color: 'var(--muted)' }}>
-                      {m.count} · {fmt(m.total)}
-                    </span>
-                  </button>
-                ))}
-              {merchants.filter(m => !merchantSearch || m.name.toLowerCase().includes(merchantSearch.toLowerCase())).length === 0 && (
-                <div className="px-3 py-4 text-xs text-center" style={{ color: 'var(--muted)' }}>Sin resultados</div>
-              )}
-            </div>
-          )}
-        </div>
 
         <button
           onClick={() => setShowMoreFilters(v => !v)}
@@ -476,52 +388,6 @@ export default function TransactionsClient() {
             })()}
           </select>
 
-          {filterMerchant ? (
-            <button
-              onClick={() => { setFilterMerchant(''); setMerchantSearch(''); setPage(1) }}
-              className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm"
-              style={{ background: 'rgba(0,217,118,.15)', border: '1px solid rgba(0,217,118,.4)', color: 'var(--accent)' }}>
-              <span className="flex items-center gap-2"><Store size={13} />{filterMerchant}</span>
-              <X size={12} />
-            </button>
-          ) : (
-            <div ref={merchantRef} className="relative">
-              <div className="flex items-center gap-2"
-                style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', borderRadius: 8, padding: '8px 12px' }}>
-                <Store size={14} style={{ color: 'var(--muted)', flexShrink: 0 }} />
-                <input
-                  type="text"
-                  placeholder="Filtrar por comercio..."
-                  value={merchantSearch}
-                  onChange={(e) => { setMerchantSearch(e.target.value); setMerchantDropdown(true) }}
-                  onFocus={() => setMerchantDropdown(true)}
-                  className="flex-1 text-sm bg-transparent outline-none"
-                />
-              </div>
-              {merchantDropdown && !filterMerchant && merchantSearch && (
-                <div className="absolute top-full mt-1 left-0 right-0 z-30 rounded-lg overflow-hidden shadow-xl"
-                  style={{ background: 'var(--card)', border: '1px solid var(--card-border)', maxHeight: 200, overflowY: 'auto' }}>
-                  {merchants
-                    .filter(m => !merchantSearch || m.name.toLowerCase().includes(merchantSearch.toLowerCase()))
-                    .slice(0, 20)
-                    .map(m => (
-                      <button key={m.name}
-                        className="w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-white/[0.06] transition-colors text-left"
-                        onClick={() => { setFilterMerchant(m.name); setMerchantSearch(''); setMerchantDropdown(false); setPage(1) }}>
-                        <span className="truncate flex-1">{m.name}</span>
-                        <span className="text-xs ml-2 tabular-nums flex-shrink-0" style={{ color: 'var(--muted)' }}>
-                          {m.count} · {fmt(m.total)}
-                        </span>
-                      </button>
-                    ))}
-                  {merchants.filter(m => !merchantSearch || m.name.toLowerCase().includes(merchantSearch.toLowerCase())).length === 0 && (
-                    <div className="px-3 py-4 text-xs text-center" style={{ color: 'var(--muted)' }}>Sin resultados</div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
           <select value={filterFixed} onChange={(e) => { setFilterFixed(e.target.value as typeof filterFixed); setPage(1) }}
             className="w-full text-sm px-3 py-2.5 rounded-lg outline-none" style={SEL}>
             <option value="">Fijo o variable</option>
@@ -550,7 +416,7 @@ export default function TransactionsClient() {
           {activeFilterCount > 0 && (
             <button
               onClick={() => {
-                setQ(''); setFilterCategory(''); setFilterMonth(''); setFilterMerchant(''); setMerchantSearch('')
+                setQ(''); setFilterCategory(''); setFilterMonth('')
                 setFilterType(''); setFilterFixed(''); setFilterMinAmount(''); setFilterMaxAmount(''); setSortBy('date'); setSortDir('desc')
                 setPage(1)
               }}
@@ -559,19 +425,6 @@ export default function TransactionsClient() {
               Limpiar filtros
             </button>
           )}
-        </div>
-      )}
-
-      {/* Merchant banner */}
-      {filterMerchant && merchantTotal !== null && (
-        <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm flex-wrap"
-          style={{ background: 'rgba(0,217,118,.08)', border: '1px solid rgba(0,217,118,.2)' }}>
-          <Store size={15} style={{ color: 'var(--accent)' }} />
-          <span style={{ color: 'var(--accent)' }}><strong>{filterMerchant}</strong></span>
-          <span style={{ color: 'var(--muted)' }}>·</span>
-          <span style={{ color: 'var(--muted)' }}>{total} transacciones</span>
-          <span style={{ color: 'var(--muted)' }}>·</span>
-          <span className="font-medium tabular-nums" style={{ color: 'var(--negative)' }}>{fmt(-merchantTotal)}</span>
         </div>
       )}
 
@@ -602,42 +455,9 @@ export default function TransactionsClient() {
                   <div className="text-xs" style={{ color: 'var(--muted)' }}>{format(new Date(tx.date), 'yyyy')}</div>
                 </div>
 
-                {/* Description + merchant + notes */}
+                {/* Description + notes */}
                 <div className="min-w-0">
                   <div className="text-sm truncate">{tx.description}</div>
-
-                  {/* Merchant: editable */}
-                  {!tx.isTransfer && (
-                    <div className="flex items-center gap-1 mt-0.5">
-                      {editMerchantId === tx.id ? (
-                        <div className="flex items-center gap-1 flex-1 min-w-0">
-                          <input
-                            autoFocus
-                            type="text"
-                            value={editMerchantValue}
-                            onChange={e => setEditMerchantValue(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') saveMerchant(tx.id); if (e.key === 'Escape') setEditMerchantId(null) }}
-                            className="text-xs px-2 py-0.5 rounded outline-none flex-1 max-w-[200px]"
-                            style={INPUT_STYLE}
-                            placeholder="Nombre del comercio"
-                          />
-                          <button onClick={() => saveMerchant(tx.id)} className="p-0.5 text-green-400"><Check size={12} /></button>
-                          <button onClick={() => setEditMerchantId(null)} className="p-0.5" style={{ color: 'var(--muted)' }}><X size={12} /></button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => { setEditMerchantId(tx.id); setEditMerchantValue(tx.merchantName ?? '') }}
-                          className="flex items-center gap-1 group/merchant"
-                          style={{ color: 'var(--muted)' }}
-                        >
-                          <span className="text-xs truncate max-w-[200px]">
-                            {tx.merchantName ?? <span className="opacity-40">+ comercio</span>}
-                          </span>
-                          <Pencil size={10} className="opacity-0 group-hover/merchant:opacity-60 transition-opacity flex-shrink-0" />
-                        </button>
-                      )}
-                    </div>
-                  )}
 
                   {/* Notes: editable */}
                   {editNotesId === tx.id ? (
@@ -747,17 +567,9 @@ export default function TransactionsClient() {
               </span>
             </div>
 
-            {/* Description + merchant badge */}
+            {/* Description */}
             <div>
               <div className="text-sm font-medium leading-snug">{tx.description}</div>
-              {tx.merchantName && (
-                <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full mt-1 max-w-[160px] truncate"
-                  style={{ background: 'rgba(0,217,118,.1)', color: 'var(--accent)' }}
-                  title={tx.merchantName}>
-                  <Store size={10} className="flex-shrink-0" />
-                  <span className="truncate">{tx.merchantName}</span>
-                </span>
-              )}
             </div>
 
             {/* Bottom row: category pill */}
@@ -816,7 +628,7 @@ export default function TransactionsClient() {
 
       {/* Pagination */}
       <div className="flex items-center justify-between text-sm px-1" style={{ color: 'var(--muted)' }}>
-        <span className="text-xs">{total} transacciones{filterMonth || filterCategory || q || filterMerchant ? ' · filtradas' : ''}</span>
+        <span className="text-xs">{total} transacciones{filterMonth || filterCategory || q ? ' · filtradas' : ''}</span>
         {totalPages > 1 && (
           <div className="flex items-center gap-1">
             <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
@@ -900,17 +712,6 @@ export default function TransactionsClient() {
                   className="w-full text-sm px-3 py-2.5 rounded-lg outline-none"
                   style={INPUT_STYLE} />
               </div>
-
-              {/* Merchant: solo para gastos */}
-              {newType === 'gasto' && (
-                <div>
-                  <label className="text-xs mb-1 block" style={{ color: 'var(--muted)' }}>Comercio (opcional)</label>
-                  <input type="text" placeholder="Ej: Mercadona"
-                    value={newMerchant} onChange={e => setNewMerchant(e.target.value)}
-                    className="w-full text-sm px-3 py-2.5 rounded-lg outline-none"
-                    style={INPUT_STYLE} />
-                </div>
-              )}
 
               {/* Category */}
               <div>

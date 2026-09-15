@@ -8,7 +8,7 @@ import { es } from 'date-fns/locale'
 interface DaySummary { expenses: number; income: number; count: number }
 interface CalTx {
   id: string; date: string; amount: number; description: string
-  merchantName: string | null; category: { name: string; color: string } | null
+  category: { name: string; color: string } | null
 }
 interface CalData {
   year: number; month: number
@@ -199,12 +199,9 @@ export default function CalendarClient() {
                 <span className="w-2 h-2 rounded-full flex-shrink-0"
                   style={{ background: tx.category?.color ?? '#6b7280' }} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm truncate">{tx.merchantName ?? tx.description}</div>
+                  <div className="text-sm truncate">{tx.description}</div>
                   <div className="text-xs" style={{ color: 'var(--muted)' }}>
                     {tx.category?.name ?? 'Sin categoría'}
-                    {tx.merchantName && tx.merchantName !== tx.description && (
-                      <span className="ml-1 opacity-60">· {tx.description}</span>
-                    )}
                   </div>
                 </div>
                 <span className="text-sm font-semibold tabular-nums flex-shrink-0"

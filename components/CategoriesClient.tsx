@@ -44,18 +44,18 @@ function TypeBadge({ label }: { label: 'Categoría' | 'Subcategoría' }) {
   )
 }
 
-function IconPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function IconPicker({ value, onChange, color }: { value: string; onChange: (v: string) => void; color?: string }) {
   const [open, setOpen] = useState(false)
   return (
     <div className="relative">
       <button
         type="button"
-        onClick={() => setOpen(o => !o)}
+        onClick={(e) => { e.stopPropagation(); setOpen(o => !o) }}
         className="w-9 h-9 rounded flex items-center justify-center border"
         style={{ background: '#0a0a0b', borderColor: 'var(--card-border)' }}
         title="Elegir icono"
       >
-        {value ? <CategoryIcon name={value} size={16} /> : <Plus size={14} style={{ opacity: 0.4 }} />}
+        {value ? <CategoryIcon name={value} size={16} color={color} /> : <Plus size={14} style={{ opacity: 0.4 }} />}
       </button>
       {open && (
         <div className="absolute top-10 left-0 z-50 rounded-lg shadow-xl p-2 grid"
@@ -65,11 +65,11 @@ function IconPicker({ value, onChange }: { value: string; onChange: (v: string) 
               key={ic}
               type="button"
               title={ic}
-              onClick={() => { onChange(ic); setOpen(false) }}
+              onClick={(e) => { e.stopPropagation(); onChange(ic); setOpen(false) }}
               className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/10 transition-colors"
               style={{ background: value === ic ? 'var(--accent)' : 'transparent' }}
             >
-              <CategoryIcon name={ic} size={14} />
+              <CategoryIcon name={ic} size={14} color={color} />
             </button>
           ))}
         </div>
@@ -184,7 +184,7 @@ export default function CategoriesClient() {
         <h3 className="text-sm font-semibold">{title}</h3>
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center flex-wrap">
           <div className="flex items-center gap-3">
-            <IconPicker value={newIcon} onChange={setNewIcon} />
+            <IconPicker value={newIcon} onChange={setNewIcon} color={newColor} />
             <input
               type="text"
               placeholder="Nombre"
@@ -220,7 +220,7 @@ export default function CategoriesClient() {
   function EditRow({ cat }: { cat: Category }) {
     return (
       <div className="flex items-center gap-3 flex-1">
-        <IconPicker value={editIcon} onChange={setEditIcon} />
+        <IconPicker value={editIcon} onChange={setEditIcon} color={editColor} />
         <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditId(null) }}
           className="flex-1 px-2 py-1 rounded text-sm outline-none"

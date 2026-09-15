@@ -27,7 +27,6 @@ model Transaction {
   amount        Float
   currency      String       @default("EUR")
   description   String
-  merchantName  String?
   categoryId    String?
   category      Category?    @relation(fields: [categoryId], references: [id])
   isManual      Boolean      @default(false)

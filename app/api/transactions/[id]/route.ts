@@ -12,11 +12,14 @@ export async function PATCH(
 
   const { id } = await params
   const body = await req.json()
-  const { categoryId, notes, isTransfer, merchantName } = body
+  const { date, amount, description, categoryId, notes, isTransfer, merchantName } = body
 
   const updated = await prisma.transaction.update({
     where: { id, userId },
     data: {
+      ...(date !== undefined && { date: new Date(date) }),
+      ...(amount !== undefined && { amount: Number(amount) }),
+      ...(description !== undefined && { description: String(description) }),
       ...(categoryId !== undefined && { categoryId, isManual: true }),
       ...(notes !== undefined && { notes }),
       ...(isTransfer !== undefined && { isTransfer }),
@@ -28,4 +31,17 @@ export async function PATCH(
   })
 
   return NextResponse.json(updated)
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await getSession()
+  if (!session.isLoggedIn) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const userId = session.userId!
+
+  const { id } = await params
+  await prisma.transaction.delete({ where: { id, userId } })
+  return NextResponse.json({ ok: true })
 }

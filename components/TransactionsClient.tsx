@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { format } from 'date-fns'
-import { Search, ChevronLeft, ChevronRight, Pencil, Check, X, Plus, Store, SlidersHorizontal } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight, Pencil, Check, X, Plus, Store, SlidersHorizontal, Trash2 } from 'lucide-react'
 
 interface Category {
   id: string
@@ -65,8 +65,9 @@ export default function TransactionsClient() {
   const [editMerchantId, setEditMerchantId] = useState<string | null>(null)
   const [editMerchantValue, setEditMerchantValue] = useState('')
 
-  // New transaction modal
+  // New/edit transaction modal
   const [showNewModal, setShowNewModal] = useState(false)
+  const [editTxId, setEditTxId] = useState<string | null>(null)
   const [newDate, setNewDate] = useState('')
   const [newAmount, setNewAmount] = useState('')
   const [newType, setNewType] = useState<'gasto' | 'ingreso'>('gasto')
@@ -141,6 +142,7 @@ export default function TransactionsClient() {
   const totalPages = Math.ceil(total / limit)
 
   function openNewModal() {
+    setEditTxId(null)
     setNewDate(format(new Date(), 'yyyy-MM-dd'))
     setNewAmount('')
     setNewType('gasto')
@@ -151,25 +153,45 @@ export default function TransactionsClient() {
     setShowNewModal(true)
   }
 
-  async function createTransaction(e: React.FormEvent) {
+  function openEditModal(tx: Transaction) {
+    setEditTxId(tx.id)
+    setNewDate(tx.date.slice(0, 10))
+    setNewAmount(String(Math.abs(tx.amount)))
+    setNewType(tx.amount < 0 ? 'gasto' : 'ingreso')
+    setNewDesc(tx.description)
+    setNewMerchant(tx.merchantName ?? '')
+    setNewCategory(tx.category?.id ?? '')
+    setNewNotes(tx.notes ?? '')
+    setShowNewModal(true)
+  }
+
+  async function submitTransaction(e: React.FormEvent) {
     e.preventDefault()
     if (!newDate || !newAmount || !newDesc.trim()) return
     setNewSaving(true)
     const sign = newType === 'gasto' ? -1 : 1
-    await fetch('/api/transactions', {
-      method: 'POST',
+    const body = {
+      date: newDate,
+      amount: sign * Math.abs(parseFloat(newAmount)),
+      description: newDesc.trim(),
+      merchantName: newType === 'gasto' ? (newMerchant.trim() || null) : null,
+      categoryId: newCategory || null,
+      notes: newNotes.trim() || null,
+    }
+    await fetch(editTxId ? `/api/transactions/${editTxId}` : '/api/transactions', {
+      method: editTxId ? 'PATCH' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        date: newDate,
-        amount: sign * Math.abs(parseFloat(newAmount)),
-        description: newDesc.trim(),
-        merchantName: newType === 'gasto' ? (newMerchant.trim() || null) : null,
-        categoryId: newCategory || null,
-        notes: newNotes.trim() || null,
-      }),
+      body: JSON.stringify(body),
     })
     setNewSaving(false)
     setShowNewModal(false)
+    setEditTxId(null)
+    load()
+  }
+
+  async function deleteTransaction(id: string, description: string) {
+    if (!confirm(`¿Eliminar "${description}"? Esta acción no se puede deshacer.`)) return
+    await fetch(`/api/transactions/${id}`, { method: 'DELETE' })
     load()
   }
 
@@ -183,7 +205,7 @@ export default function TransactionsClient() {
       {/* ── Toolbar ── */}
       {/* Desktop toolbar */}
       <div className="hidden md:flex items-center gap-2 flex-wrap">
-        <h1 className="text-xl font-semibold mr-1">Gastos</h1>
+        <h1 className="text-xl font-semibold mr-1">Transacciones</h1>
 
         <div className="flex items-center gap-2 w-52"
           style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', borderRadius: 8, padding: '5px 10px' }}>
@@ -293,7 +315,7 @@ export default function TransactionsClient() {
 
       {/* Mobile toolbar */}
       <div className="flex md:hidden items-center gap-2">
-        <h1 className="text-lg font-semibold flex-1">Gastos</h1>
+        <h1 className="text-lg font-semibold flex-1">Transacciones</h1>
         <button
           onClick={() => setShowFilters(v => !v)}
           className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg relative"
@@ -437,11 +459,12 @@ export default function TransactionsClient() {
       {/* ── Desktop Table ── */}
       <div className="hidden md:block card overflow-hidden">
         <div className="px-5 py-2.5 border-b text-xs font-semibold grid"
-          style={{ borderColor: 'var(--card-border)', color: 'var(--muted)', gridTemplateColumns: '88px 1fr 110px 200px' }}>
+          style={{ borderColor: 'var(--card-border)', color: 'var(--muted)', gridTemplateColumns: '88px 1fr 110px 200px 64px' }}>
           <span>FECHA</span>
           <span>DESCRIPCIÓN</span>
           <span className="text-right">IMPORTE</span>
           <span className="text-center">CATEGORÍA</span>
+          <span />
         </div>
 
         {loading && <div className="py-12 text-center" style={{ color: 'var(--muted)' }}>Cargando...</div>}
@@ -453,8 +476,8 @@ export default function TransactionsClient() {
           {transactions.map((tx) => (
             <div key={tx.id}>
               {/* Main row */}
-              <div className="px-5 py-3 grid items-center gap-2 hover:bg-white/[0.025] transition-colors"
-                style={{ gridTemplateColumns: '88px 1fr 110px 200px' }}>
+              <div className="px-5 py-3 grid items-center gap-2 hover:bg-white/[0.025] transition-colors group/row"
+                style={{ gridTemplateColumns: '88px 1fr 110px 200px 64px' }}>
                 <div>
                   <div className="text-xs font-medium tabular-nums">{format(new Date(tx.date), 'dd MMM')}</div>
                   <div className="text-xs" style={{ color: 'var(--muted)' }}>{format(new Date(tx.date), 'yyyy')}</div>
@@ -563,6 +586,18 @@ export default function TransactionsClient() {
                   )}
                 </div>
 
+                <div className="flex items-center justify-end gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                  <button onClick={() => openEditModal(tx)}
+                    className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
+                    title="Editar transacción">
+                    <Pencil size={13} />
+                  </button>
+                  <button onClick={() => deleteTransaction(tx.id, tx.description)}
+                    className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400"
+                    title="Eliminar transacción">
+                    <Trash2 size={13} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -626,6 +661,18 @@ export default function TransactionsClient() {
                     : 'Sin categoría'}
                 </button>
               )}
+              <div className="flex items-center gap-1 flex-shrink-0 ml-auto">
+                <button onClick={() => openEditModal(tx)}
+                  className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
+                  title="Editar transacción">
+                  <Pencil size={13} />
+                </button>
+                <button onClick={() => deleteTransaction(tx.id, tx.description)}
+                  className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400"
+                  title="Eliminar transacción">
+                  <Trash2 size={13} />
+                </button>
+              </div>
             </div>
 
             {/* Notes */}
@@ -676,11 +723,11 @@ export default function TransactionsClient() {
           <div className="card w-full md:max-w-md p-6 space-y-4 rounded-t-2xl md:rounded-xl"
             style={{ background: 'var(--card)', maxHeight: '92vh', overflowY: 'auto' }}>
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold">Nueva transacción</h2>
+              <h2 className="text-base font-semibold">{editTxId ? 'Editar transacción' : 'Nueva transacción'}</h2>
               <button onClick={() => setShowNewModal(false)} className="p-1 hover:opacity-60"><X size={18} /></button>
             </div>
 
-            <form onSubmit={createTransaction} className="space-y-3">
+            <form onSubmit={submitTransaction} className="space-y-3">
               {/* Type toggle */}
               <div className="flex rounded-lg overflow-hidden text-sm" style={{ border: '1px solid var(--card-border)' }}>
                 {(['gasto', 'ingreso'] as const).map(t => (

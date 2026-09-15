@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Plus, Trash2, Check, X, Shield, KeyRound } from 'lucide-react'
+import Skeleton from './Skeleton'
 
 interface User {
   id: string; username: string; isAdmin: boolean; createdAt: string
@@ -133,7 +134,17 @@ export default function SettingsClient() {
           )}
 
           <div className="card overflow-hidden">
-            {usersLoading && <div className="py-8 text-center text-sm" style={{ color: 'var(--muted)' }}>Cargando...</div>}
+            {usersLoading && (
+              <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 px-4 py-3">
+                    <Skeleton className="h-4 flex-1 max-w-40" />
+                    <Skeleton className="h-6 w-6 rounded" />
+                    <Skeleton className="h-6 w-6 rounded" />
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
               {users.map((u) => (
                 <div key={u.id}>

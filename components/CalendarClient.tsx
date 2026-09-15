@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { getDaysInMonth, getDay, format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import Skeleton from './Skeleton'
 
 interface DaySummary { expenses: number; income: number; count: number }
 interface CalTx {
@@ -94,7 +95,15 @@ export default function CalendarClient() {
           ))}
         </div>
 
-        {loading && <div className="py-24 text-center text-sm" style={{ color: 'var(--muted)' }}>Cargando...</div>}
+        {loading && (
+          <div className="grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
+            {Array.from({ length: 35 }).map((_, i) => (
+              <div key={i} className="p-2" style={{ borderRight: '1px solid var(--card-border)', borderBottom: '1px solid var(--card-border)', minHeight: 80 }}>
+                <Skeleton className="h-6 w-6 rounded-full" />
+              </div>
+            ))}
+          </div>
+        )}
 
         {!loading && (
           <div className="grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>

@@ -9,6 +9,7 @@ import { es } from 'date-fns/locale'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts'
+import Skeleton from './Skeleton'
 
 interface GroupRow {
   id: string
@@ -242,9 +243,23 @@ export default function ReportClient() {
       </div>
 
       {loading && (
-        <div className="flex items-center justify-center py-20 gap-2" style={{ color: 'var(--muted)' }}>
-          <RefreshCw size={18} className="animate-spin" />
-          <span className="text-sm">Cargando informe...</span>
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="card p-4 space-y-2">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-6 w-24" />
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[0, 1].map((i) => (
+              <div key={i} className="card p-4 space-y-3">
+                <Skeleton className="h-3 w-24" />
+                {Array.from({ length: 4 }).map((_, j) => <Skeleton key={j} className="h-4 w-full" />)}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

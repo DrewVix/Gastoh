@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Pencil, Trash2, Plus, X, Check, ChevronDown, ChevronRight, FolderPlus } from 'lucide-react'
+import Skeleton from './Skeleton'
 
 interface Category {
   id: string
@@ -193,7 +194,16 @@ export default function CategoriesClient() {
       {creating === 'group' && <CreateForm title="Nuevo grupo de categorías" />}
       {creating === 'ungrouped' && <CreateForm title="Nueva categoría (sin grupo)" />}
 
-      {loading && <div className="py-12 text-center" style={{ color: 'var(--muted)' }}>Cargando...</div>}
+      {loading && (
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="card px-4 py-3 flex items-center gap-3">
+              <Skeleton className="w-2.5 h-2.5 rounded-sm" />
+              <Skeleton className="h-4 w-40" />
+            </div>
+          ))}
+        </div>
+      )}
 
       {!loading && (
         <div className="space-y-2">

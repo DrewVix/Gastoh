@@ -11,6 +11,7 @@ import {
 import { TrendingUp, TrendingDown, Minus, AlertTriangle, ChevronDown, ChevronRight, RefreshCw } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import Skeleton from './Skeleton'
 
 function CategoryIcon({ name, size = 14, style }: { name: string | null | undefined; size?: number; style?: React.CSSProperties }) {
   if (!name) return null
@@ -250,7 +251,36 @@ export default function DashboardClient() {
         </div>
       )}
 
-      {loading && <div className="py-24 text-center text-sm" style={{ color: 'var(--muted)' }}>Cargando...</div>}
+      {loading && (
+        <div className="space-y-5">
+          <div className="rounded-xl grid grid-cols-2 md:grid-cols-4"
+            style={{ background: 'var(--card)', border: '1px solid var(--card-border)' }}>
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="px-4 md:px-6 py-4 md:py-5 space-y-2"
+                style={i > 0 ? { borderLeft: '1px solid var(--card-border)' } : undefined}>
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-7 w-28" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+            ))}
+          </div>
+          <div className="grid gap-5 grid-cols-1 md:grid-cols-[1fr_400px]">
+            <div className="card p-5 space-y-3">
+              {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-9 w-full" />)}
+            </div>
+            <div className="space-y-5">
+              <div className="card p-5 space-y-3">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-24 w-full" />
+              </div>
+              <div className="card p-5 space-y-3">
+                <Skeleton className="h-4 w-28" />
+                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {data && !loading && (
         <>

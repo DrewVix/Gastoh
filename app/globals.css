@@ -42,3 +42,30 @@ body {
   outline: none;
   box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--accent);
 }
+
+button:active {
+  transform: scale(0.98);
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--card-border);
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .07), transparent);
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { animation: none; }
+}

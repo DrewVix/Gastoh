@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { format } from 'date-fns'
 import { Search, ChevronLeft, ChevronRight, Pencil, Check, X, Plus, SlidersHorizontal, Trash2 } from 'lucide-react'
+import Skeleton from './Skeleton'
 
 interface Category {
   id: string
@@ -428,13 +429,25 @@ export default function TransactionsClient() {
           <span />
         </div>
 
-        {loading && <div className="py-12 text-center" style={{ color: 'var(--muted)' }}>Cargando...</div>}
+        {loading && (
+          <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="px-5 py-3 grid items-center gap-2" style={{ gridTemplateColumns: '88px 1fr 110px 200px 64px' }}>
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-4 w-14 ml-auto" />
+                <Skeleton className="h-6 w-24 mx-auto rounded-full" />
+                <div />
+              </div>
+            ))}
+          </div>
+        )}
         {!loading && transactions.length === 0 && (
           <div className="py-12 text-center" style={{ color: 'var(--muted)' }}>No hay transacciones con estos filtros</div>
         )}
 
         <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
-          {transactions.map((tx) => (
+          {!loading && transactions.map((tx) => (
             <div key={tx.id}>
               {/* Main row */}
               <div className="px-5 py-3 grid items-center gap-2 hover:bg-white/[0.025] transition-colors group/row"
@@ -539,11 +552,20 @@ export default function TransactionsClient() {
 
       {/* ── Mobile card list ── */}
       <div className="md:hidden space-y-2">
-        {loading && <div className="py-12 text-center" style={{ color: 'var(--muted)' }}>Cargando...</div>}
+        {loading && Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="card px-4 py-3 space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-5 w-16" />
+            </div>
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-6 w-20 rounded-full" />
+          </div>
+        ))}
         {!loading && transactions.length === 0 && (
           <div className="py-12 text-center" style={{ color: 'var(--muted)' }}>No hay transacciones con estos filtros</div>
         )}
-        {transactions.map((tx) => (
+        {!loading && transactions.map((tx) => (
           <div key={tx.id} className="card px-4 py-3 space-y-2">
             {/* Top row: date + amount */}
             <div className="flex items-start justify-between gap-2">

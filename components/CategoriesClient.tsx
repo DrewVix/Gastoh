@@ -33,6 +33,17 @@ const ICON_OPTIONS = [
   'Landmark','Tag','Folder','Star','Heart','Coffee','Music','Book','Plane','Globe',
 ]
 
+function TypeBadge({ label }: { label: 'Categoría' | 'Subcategoría' }) {
+  return (
+    <span
+      className="text-[10px] px-1.5 py-0.5 rounded uppercase tracking-wide font-semibold flex-shrink-0"
+      style={{ background: 'var(--card-border)', color: 'var(--muted)' }}
+    >
+      {label}
+    </span>
+  )
+}
+
 function IconPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false)
   return (
@@ -275,6 +286,7 @@ export default function CategoriesClient() {
                         <CategoryIcon name={group.icon} size={16} />
                       </span>
                       <span className="flex-1 min-w-0 text-sm font-semibold truncate" title={group.name}>{group.name}</span>
+                      <TypeBadge label="Categoría" />
                       <span className="text-xs truncate flex-shrink-0" style={{ color: 'var(--muted)' }}>
                         {group.children.length} subcategorías · {totalTx} transacciones
                       </span>
@@ -309,6 +321,7 @@ export default function CategoriesClient() {
                                 <CategoryIcon name={cat.icon} size={14} />
                               </span>
                               <span className="flex-1 min-w-0 text-sm truncate" title={cat.name}>{cat.name}</span>
+                              <TypeBadge label="Subcategoría" />
                               <span className="text-xs" style={{ color: 'var(--muted)' }}>
                                 {cat._count.transactions} tx
                               </span>
@@ -372,6 +385,7 @@ export default function CategoriesClient() {
                               <CategoryIcon name={cat.icon} size={14} />
                             </span>
                             <span className="flex-1 min-w-0 text-sm truncate" title={cat.name}>{cat.name}</span>
+                            <TypeBadge label="Categoría" />
                             <span className="text-xs truncate flex-shrink-0" style={{ color: 'var(--muted)' }}>
                               {cat._count.transactions} transacciones
                             </span>

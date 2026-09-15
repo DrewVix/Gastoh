@@ -10,7 +10,12 @@ interface Category {
   icon: string | null
   color: string | null
   parentId: string | null
-  parent: { id: string; name: string; color: string | null; icon: string | null } | null
+  isFixed: boolean
+  parent: { id: string; name: string; color: string | null; icon: string | null; isFixed: boolean } | null
+}
+
+function isFixedExpense(category: Category | null): boolean {
+  return !!category && (category.isFixed || category.parent?.isFixed === true)
 }
 interface Transaction {
   id: string
@@ -49,6 +54,7 @@ export default function TransactionsClient() {
   const [filterMonth, setFilterMonth] = useState('')
   const [filterMerchant, setFilterMerchant] = useState('')
   const [filterType, setFilterType] = useState<'' | 'gasto' | 'ingreso' | 'transferencia'>('')
+  const [filterFixed, setFilterFixed] = useState<'' | 'fixed' | 'variable'>('')
   const [filterMinAmount, setFilterMinAmount] = useState('')
   const [filterMaxAmount, setFilterMaxAmount] = useState('')
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date')
@@ -96,6 +102,7 @@ export default function TransactionsClient() {
       ...(filterMonth && { month: filterMonth }),
       ...(filterMerchant && { merchant: filterMerchant }),
       ...(filterType && { type: filterType }),
+      ...(filterFixed && { fixed: filterFixed }),
       ...(filterMinAmount && { minAmount: filterMinAmount }),
       ...(filterMaxAmount && { maxAmount: filterMaxAmount }),
       sortBy,
@@ -107,7 +114,7 @@ export default function TransactionsClient() {
     setTotal(data.total ?? 0)
     setMerchantTotal(data.merchantTotal ?? null)
     setLoading(false)
-  }, [page, q, filterCategory, filterMonth, filterMerchant, filterType, filterMinAmount, filterMaxAmount, sortBy, sortDir])
+  }, [page, q, filterCategory, filterMonth, filterMerchant, filterType, filterFixed, filterMinAmount, filterMaxAmount, sortBy, sortDir])
 
   useEffect(() => { load() }, [load])
   useEffect(() => {
@@ -212,7 +219,7 @@ export default function TransactionsClient() {
   const SEL = { background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }
 
   // Count active filters for badge
-  const activeFilterCount = [q, filterCategory, filterMonth, filterMerchant, filterType, filterMinAmount, filterMaxAmount].filter(Boolean).length
+  const activeFilterCount = [q, filterCategory, filterMonth, filterMerchant, filterType, filterFixed, filterMinAmount, filterMaxAmount].filter(Boolean).length
     + (sortBy !== 'date' || sortDir !== 'desc' ? 1 : 0)
 
   return (
@@ -329,9 +336,9 @@ export default function TransactionsClient() {
           onClick={() => setShowMoreFilters(v => !v)}
           className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg relative transition-colors"
           style={{
-            background: (filterMinAmount || filterMaxAmount || sortBy !== 'date' || sortDir !== 'desc') ? 'rgba(0,217,118,.15)' : 'var(--card)',
-            border: `1px solid ${(filterMinAmount || filterMaxAmount || sortBy !== 'date' || sortDir !== 'desc') ? 'rgba(0,217,118,.4)' : 'var(--card-border)'}`,
-            color: (filterMinAmount || filterMaxAmount || sortBy !== 'date' || sortDir !== 'desc') ? 'var(--accent)' : 'var(--muted)',
+            background: (filterFixed || filterMinAmount || filterMaxAmount || sortBy !== 'date' || sortDir !== 'desc') ? 'rgba(0,217,118,.15)' : 'var(--card)',
+            border: `1px solid ${(filterFixed || filterMinAmount || filterMaxAmount || sortBy !== 'date' || sortDir !== 'desc') ? 'rgba(0,217,118,.4)' : 'var(--card-border)'}`,
+            color: (filterFixed || filterMinAmount || filterMaxAmount || sortBy !== 'date' || sortDir !== 'desc') ? 'var(--accent)' : 'var(--muted)',
           }}>
           <SlidersHorizontal size={14} />
           Más filtros
@@ -351,7 +358,15 @@ export default function TransactionsClient() {
       {/* Desktop: more filters (amount range + sort) */}
       {showMoreFilters && (
         <div className="hidden md:flex items-center gap-2 card p-3">
-          <span className="text-xs" style={{ color: 'var(--muted)' }}>Importe</span>
+          <span className="text-xs" style={{ color: 'var(--muted)' }}>Gasto</span>
+          <select value={filterFixed} onChange={(e) => { setFilterFixed(e.target.value as typeof filterFixed); setPage(1) }}
+            className="text-sm px-3 py-1.5 rounded-lg outline-none" style={SEL}>
+            <option value="">Fijo o variable</option>
+            <option value="fixed">Solo fijos</option>
+            <option value="variable">Solo variables</option>
+          </select>
+
+          <span className="text-xs ml-2" style={{ color: 'var(--muted)' }}>Importe</span>
           <input type="number" min="0" step="0.01" placeholder="Mín €" value={filterMinAmount}
             onChange={(e) => { setFilterMinAmount(e.target.value); setPage(1) }}
             className="w-24 text-sm px-2.5 py-1.5 rounded-lg outline-none" style={SEL} />
@@ -370,9 +385,9 @@ export default function TransactionsClient() {
             <option value="amount-asc">Importe (menor primero)</option>
           </select>
 
-          {(filterMinAmount || filterMaxAmount || sortBy !== 'date' || sortDir !== 'desc') && (
+          {(filterFixed || filterMinAmount || filterMaxAmount || sortBy !== 'date' || sortDir !== 'desc') && (
             <button
-              onClick={() => { setFilterMinAmount(''); setFilterMaxAmount(''); setSortBy('date'); setSortDir('desc') }}
+              onClick={() => { setFilterFixed(''); setFilterMinAmount(''); setFilterMaxAmount(''); setSortBy('date'); setSortDir('desc') }}
               className="text-xs px-2 py-1 rounded hover:bg-white/10 transition-colors ml-1" style={{ color: 'var(--muted)' }}>
               Restablecer
             </button>
@@ -507,6 +522,13 @@ export default function TransactionsClient() {
             </div>
           )}
 
+          <select value={filterFixed} onChange={(e) => { setFilterFixed(e.target.value as typeof filterFixed); setPage(1) }}
+            className="w-full text-sm px-3 py-2.5 rounded-lg outline-none" style={SEL}>
+            <option value="">Fijo o variable</option>
+            <option value="fixed">Solo gastos fijos</option>
+            <option value="variable">Solo gastos variables</option>
+          </select>
+
           <div className="flex items-center gap-2">
             <input type="number" min="0" step="0.01" placeholder="Importe mín €" value={filterMinAmount}
               onChange={(e) => { setFilterMinAmount(e.target.value); setPage(1) }}
@@ -529,7 +551,7 @@ export default function TransactionsClient() {
             <button
               onClick={() => {
                 setQ(''); setFilterCategory(''); setFilterMonth(''); setFilterMerchant(''); setMerchantSearch('')
-                setFilterType(''); setFilterMinAmount(''); setFilterMaxAmount(''); setSortBy('date'); setSortDir('desc')
+                setFilterType(''); setFilterFixed(''); setFilterMinAmount(''); setFilterMaxAmount(''); setSortBy('date'); setSortDir('desc')
                 setPage(1)
               }}
               className="w-full text-sm py-2 rounded-lg"
@@ -681,6 +703,11 @@ export default function TransactionsClient() {
                         : 'Sin categoría'}
                     </button>
                   )}
+                  {!tx.isTransfer && tx.amount < 0 && (
+                    <div className="text-[10px] mt-1" style={{ color: isFixedExpense(tx.category) ? 'var(--accent)' : 'var(--muted)' }}>
+                      {isFixedExpense(tx.category) ? 'Fijo' : 'Variable'}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-end gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
@@ -757,6 +784,11 @@ export default function TransactionsClient() {
                       : tx.category.name)
                     : 'Sin categoría'}
                 </button>
+              )}
+              {!tx.isTransfer && tx.amount < 0 && (
+                <span className="text-[10px] flex-shrink-0" style={{ color: isFixedExpense(tx.category) ? 'var(--accent)' : 'var(--muted)' }}>
+                  {isFixedExpense(tx.category) ? 'Fijo' : 'Variable'}
+                </span>
               )}
               <div className="flex items-center gap-1 flex-shrink-0 ml-auto">
                 <button onClick={() => openEditModal(tx)}

@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
   const merchant = searchParams.get('merchant')
   const q = searchParams.get('q')
   const type = searchParams.get('type') // 'gasto' | 'ingreso' | 'transferencia' | null (todos)
+  const fixed = searchParams.get('fixed') // 'fixed' | 'variable' | null (todos)
   const minAmount = searchParams.get('minAmount')
   const maxAmount = searchParams.get('maxAmount')
   const sortBy = searchParams.get('sortBy') === 'amount' ? 'amount' : 'date'
@@ -58,6 +59,12 @@ export async function GET(req: NextRequest) {
     and.push({ OR: [{ description: { contains: q } }, { merchantName: { contains: q } }] })
   }
 
+  // Fijo/variable: hereda de la categoría o de su grupo padre.
+  if (fixed === 'fixed' || fixed === 'variable') {
+    const isFixedCondition = { OR: [{ category: { isFixed: true } }, { category: { parent: { isFixed: true } } }] }
+    and.push(fixed === 'fixed' ? isFixedCondition : { NOT: isFixedCondition })
+  }
+
   // Rango de importe: se compara por magnitud (valor absoluto), sea gasto o ingreso.
   const min = minAmount ? Math.abs(parseFloat(minAmount)) : null
   const max = maxAmount ? Math.abs(parseFloat(maxAmount)) : null
@@ -76,7 +83,7 @@ export async function GET(req: NextRequest) {
     prisma.transaction.findMany({
       where,
       include: {
-        category: { select: { id: true, name: true, icon: true, color: true, parentId: true, parent: { select: { id: true, name: true, color: true, icon: true } } } },
+        category: { select: { id: true, name: true, icon: true, color: true, parentId: true, isFixed: true, parent: { select: { id: true, name: true, color: true, icon: true, isFixed: true } } } },
       },
       orderBy: sortBy === 'amount' ? [{ amount: sortDir }] : [{ date: sortDir }],
       skip: (page - 1) * limit,
@@ -124,7 +131,7 @@ export async function POST(req: NextRequest) {
       isManual: true,
     },
     include: {
-      category: { select: { id: true, name: true, icon: true, color: true, parentId: true, parent: { select: { id: true, name: true, color: true, icon: true } } } },
+      category: { select: { id: true, name: true, icon: true, color: true, parentId: true, isFixed: true, parent: { select: { id: true, name: true, color: true, icon: true, isFixed: true } } } },
     },
   })
 

@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { Pencil, Trash2, Plus, X, Check, ChevronDown, ChevronRight, FolderPlus } from 'lucide-react'
-import * as LucideIcons from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 
 interface Category {
   id: string
@@ -17,66 +15,7 @@ interface Category {
   _count: { transactions: number }
 }
 
-function CategoryIcon({ name, size = 14, color }: { name: string | null | undefined; size?: number; color?: string }) {
-  if (!name) return null
-  const Icon = (LucideIcons as Record<string, unknown>)[name] as React.FC<{ size?: number; color?: string }> | undefined
-  return Icon ? <Icon size={size} color={color} /> : <span style={{ fontSize: size }}>{name}</span>
-}
-
 const COLORS = ['#EF4444', '#F97316', '#EAB308', '#22C55E', '#14B8A6', '#3B82F6', '#6366F1', '#A855F7', '#EC4899', '#6B7280']
-
-// Iconos Lucide sugeridos para categorías
-const ICON_OPTIONS = [
-  'ShoppingCart','Utensils','Bike','Bus','Fuel','Car','Package','Shirt','Radio','Stethoscope',
-  'Dumbbell','Building2','Zap','Signal','Shield','ArrowLeftRight','Banknote','TrendingUp',
-  'LineChart','Sofa','HelpCircle','UtensilsCrossed','ShoppingBag','Wifi','HeartPulse','Home',
-  'Landmark','Tag','Folder','Star','Heart','Coffee','Music','Book','Plane','Globe',
-]
-
-function TypeBadge({ label }: { label: 'Categoría' | 'Subcategoría' }) {
-  return (
-    <span
-      className="text-[10px] px-1.5 py-0.5 rounded uppercase tracking-wide font-semibold flex-shrink-0"
-      style={{ background: 'var(--card-border)', color: 'var(--muted)' }}
-    >
-      {label}
-    </span>
-  )
-}
-
-function IconPicker({ value, onChange, color }: { value: string; onChange: (v: string) => void; color?: string }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); setOpen(o => !o) }}
-        className="w-9 h-9 rounded flex items-center justify-center border"
-        style={{ background: '#0a0a0b', borderColor: 'var(--card-border)' }}
-        title="Elegir icono"
-      >
-        {value ? <CategoryIcon name={value} size={16} color={color} /> : <Plus size={14} style={{ opacity: 0.4 }} />}
-      </button>
-      {open && (
-        <div className="absolute top-10 left-0 z-50 rounded-lg shadow-xl p-2 grid"
-          style={{ background: '#121214', border: '1px solid var(--card-border)', gridTemplateColumns: 'repeat(8,1fr)', gap: 2, width: 240 }}>
-          {ICON_OPTIONS.map(ic => (
-            <button
-              key={ic}
-              type="button"
-              title={ic}
-              onClick={(e) => { e.stopPropagation(); onChange(ic); setOpen(false) }}
-              className="w-7 h-7 rounded flex items-center justify-center hover:bg-white/10 transition-colors"
-              style={{ background: value === ic ? 'var(--accent)' : 'transparent' }}
-            >
-              <CategoryIcon name={ic} size={14} color={color} />
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
 
 export default function CategoriesClient() {
   const [groups, setGroups] = useState<Category[]>([])
@@ -88,14 +27,12 @@ export default function CategoriesClient() {
   // Editing
   const [editId, setEditId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
-  const [editIcon, setEditIcon] = useState('')
   const [editColor, setEditColor] = useState('')
 
   // Creating
   type CreateMode = 'closed' | 'group' | 'ungrouped' | { parentId: string }
   const [creating, setCreating] = useState<CreateMode>('closed')
   const [newName, setNewName] = useState('')
-  const [newIcon, setNewIcon] = useState('')
   const [newColor, setNewColor] = useState('#6366F1')
 
   async function load() {
@@ -113,7 +50,6 @@ export default function CategoriesClient() {
   function startEdit(cat: Category) {
     setEditId(cat.id)
     setEditName(cat.name)
-    setEditIcon(cat.icon ?? '')
     setEditColor(cat.color ?? '#6366F1')
   }
 
@@ -121,7 +57,7 @@ export default function CategoriesClient() {
     await fetch(`/api/categories/${editId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: editName, icon: editIcon, color: editColor }),
+      body: JSON.stringify({ name: editName, color: editColor }),
     })
     setEditId(null)
     load()
@@ -152,7 +88,7 @@ export default function CategoriesClient() {
             : 'border-[var(--card-border)] text-[var(--muted)]'
         }`}
       >
-        {cat.isFixed ? '🔒 Fijo' : 'Variable'}
+        {cat.isFixed ? 'Fijo' : 'Variable'}
       </button>
     )
   }
@@ -163,18 +99,16 @@ export default function CategoriesClient() {
     await fetch('/api/categories', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newName, icon: newIcon, color: newColor, parentId }),
+      body: JSON.stringify({ name: newName, color: newColor, parentId }),
     })
     setCreating('closed')
     setNewName('')
-    setNewIcon('')
     load()
   }
 
   function openCreate(mode: CreateMode) {
     setCreating(mode)
     setNewName('')
-    setNewIcon('')
     setNewColor('#6366F1')
   }
 
@@ -183,19 +117,16 @@ export default function CategoriesClient() {
       <div className="card p-4 space-y-3 mb-4">
         <h3 className="text-sm font-semibold">{title}</h3>
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center flex-wrap">
-          <div className="flex items-center gap-3">
-            <IconPicker value={newIcon} onChange={setNewIcon} color={newColor} />
-            <input
-              type="text"
-              placeholder="Nombre"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') createCategory(); if (e.key === 'Escape') setCreating('closed') }}
-              className="flex-1 min-w-[140px] px-3 py-2.5 rounded text-sm outline-none"
-              style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
-              autoFocus
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Nombre"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') createCategory(); if (e.key === 'Escape') setCreating('closed') }}
+            className="flex-1 min-w-[140px] px-3 py-2.5 rounded text-sm outline-none"
+            style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
+            autoFocus
+          />
           <div className="flex gap-1 flex-wrap">
             {COLORS.map((c) => (
               <button key={c} onClick={() => setNewColor(c)} className="w-5 h-5 rounded-full border-2 transition-all"
@@ -220,7 +151,6 @@ export default function CategoriesClient() {
   function EditRow({ cat }: { cat: Category }) {
     return (
       <div className="flex items-center gap-2 flex-wrap flex-1">
-        <IconPicker value={editIcon} onChange={setEditIcon} color={editColor} />
         <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditId(null) }}
           className="flex-1 min-w-[100px] px-2 py-1 rounded text-sm outline-none"
@@ -285,11 +215,8 @@ export default function CategoriesClient() {
                   ) : (
                     <>
                       <div className="flex items-center gap-2 min-w-0" style={{ flex: '1 1 140px' }}>
-                        <span className="flex-shrink-0" style={{ color: group.color ?? '#9E9E9E' }}>
-                          <CategoryIcon name={group.icon} size={16} />
-                        </span>
+                        <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: group.color ?? '#9E9E9E' }} />
                         <span className="min-w-0 text-sm font-semibold truncate" title={group.name}>{group.name}</span>
-                        <TypeBadge label="Categoría" />
                       </div>
                       <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
                         <span className="text-xs truncate" style={{ color: 'var(--muted)' }}>
@@ -324,11 +251,8 @@ export default function CategoriesClient() {
                           ) : (
                             <>
                               <div className="flex items-center gap-2 min-w-0" style={{ flex: '1 1 120px' }}>
-                                <span className="flex-shrink-0" style={{ color: cat.color ?? '#9E9E9E' }}>
-                                  <CategoryIcon name={cat.icon} size={14} />
-                                </span>
+                                <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: cat.color ?? '#9E9E9E' }} />
                                 <span className="min-w-0 text-sm truncate" title={cat.name}>{cat.name}</span>
-                                <TypeBadge label="Subcategoría" />
                               </div>
                               <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
                                 <span className="text-xs" style={{ color: 'var(--muted)' }}>
@@ -392,11 +316,8 @@ export default function CategoriesClient() {
                         ) : (
                           <>
                             <div className="flex items-center gap-2 min-w-0" style={{ flex: '1 1 140px' }}>
-                              <span className="flex-shrink-0" style={{ color: cat.color ?? '#9E9E9E' }}>
-                                <CategoryIcon name={cat.icon} size={14} />
-                              </span>
+                              <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: cat.color ?? '#9E9E9E' }} />
                               <span className="min-w-0 text-sm truncate" title={cat.name}>{cat.name}</span>
-                              <TypeBadge label="Categoría" />
                             </div>
                             <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
                               <span className="text-xs truncate" style={{ color: 'var(--muted)' }}>

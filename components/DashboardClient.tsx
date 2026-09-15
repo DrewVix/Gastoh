@@ -39,15 +39,12 @@ interface TxRow {
   description: string
   amount: number
   category: { name: string; color: string | null } | null
-  bankAccount: { displayName: string } | null
 }
 
 interface DashboardData {
   from: string
   to: string
   periodDays: number
-  incomeShifted: boolean
-  incomePeriodLabel: string | null
   summary: {
     totalExpenses: number
     totalIncome: number
@@ -70,7 +67,6 @@ interface DashboardData {
     total: number; pct: number
     subcategories: CategoryRow[]
   }>
-  bySource: Array<{ source: string; label: string; total: number; count: number }>
   topTransactions: Array<{ id: string; date: string; description: string; amount: number; category: string; categoryColor: string }>
   topMerchants: Array<{ name: string; total: number; count: number; categoryColor: string; categoryName: string }>
   trend: Array<{ month: string; expenses: number; income: number }>
@@ -124,10 +120,10 @@ function TrendBadge({ trend }: { trend: number | null }) {
   )
 }
 
-const TT = { background: '#1d1b16', border: '1px solid #332e25', borderRadius: 8, fontSize: 12 }
-const TICK = { fontSize: 11, fill: '#988f7d' }
-const CHART_NEGATIVE = '#c15c4c'
-const CHART_POSITIVE = '#6fa27d'
+const TT = { background: '#121214', border: '1px solid #1e1e21', borderRadius: 8, fontSize: 12 }
+const TICK = { fontSize: 11, fill: '#8c8c92' }
+const CHART_NEGATIVE = '#ff4d4d'
+const CHART_POSITIVE = '#00d976'
 
 export default function DashboardClient() {
   const [preset, setPreset] = useState<Preset>('month')
@@ -168,10 +164,7 @@ export default function DashboardClient() {
     setExpandedGroupId(null)
     setExpandedCatId(null)
     setCatTxs([])
-    // Para mes actual y mes anterior: los ingresos se cuentan del mes previo
-    // porque la nómina llega antes de que empiece el mes
-    const shiftIncome = preset === 'month' || preset === 'prev-month'
-    const url = `/api/dashboard?from=${from}&to=${to}${shiftIncome ? '&shiftIncome=1' : ''}`
+    const url = `/api/dashboard?from=${from}&to=${to}`
     fetch(url)
       .then((r) => r.json())
       .then(setData)
@@ -244,13 +237,13 @@ export default function DashboardClient() {
             <span className="text-xs" style={{ color: 'var(--muted)' }}>Desde</span>
             <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)}
               className="text-sm px-3 py-1.5 rounded-lg outline-none"
-              style={{ background: '#100f0c', border: '1px solid var(--card-border)', color: 'var(--foreground)' }} />
+              style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }} />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs" style={{ color: 'var(--muted)' }}>Hasta</span>
             <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)}
               className="text-sm px-3 py-1.5 rounded-lg outline-none"
-              style={{ background: '#100f0c', border: '1px solid var(--card-border)', color: 'var(--foreground)' }} />
+              style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }} />
           </div>
         </div>
       )}
@@ -298,7 +291,6 @@ export default function DashboardClient() {
                   {s!.totalIncome > 0 && (
                     <span className="ml-1" style={{ color: 'var(--muted)' }}>
                       · {eur(s!.totalIncome)} ingresados
-                      {data.incomeShifted && data.incomePeriodLabel && ` (nómina ${data.incomePeriodLabel})`}
                     </span>
                   )}
                 </div>
@@ -587,9 +579,6 @@ export default function DashboardClient() {
                                             {format(new Date(tx.date), 'dd/MM/yy')}
                                           </span>
                                           <span className="flex-1 truncate text-xs">{tx.description}</span>
-                                          <span className="text-xs flex-shrink-0" style={{ color: 'var(--muted)' }}>
-                                            {tx.bankAccount?.displayName ?? 'Importado'}
-                                          </span>
                                           <span className="text-xs font-semibold tabular-nums flex-shrink-0"
                                             style={{ color: tx.amount < 0 ? 'var(--negative)' : 'var(--positive)' }}>
                                             {tx.amount.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
@@ -651,7 +640,7 @@ export default function DashboardClient() {
                               if (e.key === 'Escape') setEditingGoal(false)
                             }}
                             className="flex-1 px-3 py-1.5 rounded text-sm outline-none"
-                            style={{ background: '#100f0c', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
+                            style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
                             autoFocus
                           />
                           <span className="text-sm" style={{ color: 'var(--muted)' }}>€</span>
@@ -680,7 +669,7 @@ export default function DashboardClient() {
                         {/* Barra de progreso */}
                         <div>
                           <div className="flex items-end justify-between mb-1.5">
-                            <span className="font-display text-2xl font-semibold tabular-nums" style={{ color: isOnTrack ? 'var(--positive)' : 'var(--accent)' }}>
+                            <span className="font-display text-2xl font-semibold tabular-nums" style={{ color: isOnTrack ? 'var(--positive)' : 'var(--foreground)' }}>
                               {eur(actual)}
                             </span>
                             <span className="text-sm tabular-nums" style={{ color: 'var(--muted)' }}>
@@ -689,10 +678,10 @@ export default function DashboardClient() {
                           </div>
                           <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--card-border)' }}>
                             <div className="h-2 rounded-full transition-all"
-                              style={{ width: `${pct}%`, background: isOnTrack ? 'var(--positive)' : pct > 50 ? 'var(--accent)' : 'var(--negative)' }} />
+                              style={{ width: `${pct}%`, background: isOnTrack ? 'var(--positive)' : 'var(--muted)' }} />
                           </div>
                           <div className="flex justify-between mt-1">
-                            <span className="text-xs" style={{ color: isOnTrack ? 'var(--positive)' : 'var(--accent)' }}>
+                            <span className="text-xs" style={{ color: isOnTrack ? 'var(--positive)' : 'var(--muted)' }}>
                               {pct}% del objetivo
                             </span>
                             {deficit > 0 && (
@@ -740,7 +729,7 @@ export default function DashboardClient() {
               {data.insights.length > 0 && (
                 <div className="card overflow-hidden">
                   <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid var(--card-border)' }}>
-                    <AlertTriangle size={13} style={{ color: 'var(--accent)' }} />
+                    <AlertTriangle size={13} style={{ color: 'var(--negative)' }} />
                     <span className="text-sm font-semibold">
                       Dónde puedes ahorrar
                     </span>
@@ -834,7 +823,7 @@ export default function DashboardClient() {
               <div className="text-sm font-semibold mb-4">Evolución 12 meses</div>
               <ResponsiveContainer width="100%" height={250} className="md:!h-[200px]">
                 <BarChart data={data.trend} barGap={2}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#332e25" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e1e21" vertical={false} />
                   <XAxis dataKey="month" tick={TICK} axisLine={false} tickLine={false} />
                   <YAxis tick={TICK} axisLine={false} tickLine={false}
                     tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} width={36} />
@@ -866,19 +855,6 @@ export default function DashboardClient() {
               </div>
             )}
           </div>
-
-          {/* ── Cuentas ── */}
-          {data.bySource.length > 1 && (
-            <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-              {data.bySource.map((src) => (
-                <div key={src.source} className="card p-4 min-w-0">
-                  <div className="text-xs mb-1 truncate" style={{ color: 'var(--muted)' }} title={src.label}>{src.label}</div>
-                  <div className="font-display text-xl font-semibold tabular-nums">{eur(src.total)}</div>
-                  <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{src.count} transacciones</div>
-                </div>
-              ))}
-            </div>
-          )}
         </>
       )}
     </div>

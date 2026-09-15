@@ -41,14 +41,14 @@ function IconPicker({ value, onChange }: { value: string; onChange: (v: string) 
         type="button"
         onClick={() => setOpen(o => !o)}
         className="w-9 h-9 rounded flex items-center justify-center border"
-        style={{ background: '#0f1117', borderColor: 'var(--card-border)' }}
+        style={{ background: '#0a0a0b', borderColor: 'var(--card-border)' }}
         title="Elegir icono"
       >
         {value ? <CategoryIcon name={value} size={16} /> : <Plus size={14} style={{ opacity: 0.4 }} />}
       </button>
       {open && (
         <div className="absolute top-10 left-0 z-50 rounded-lg shadow-xl p-2 grid"
-          style={{ background: '#1a1d27', border: '1px solid var(--card-border)', gridTemplateColumns: 'repeat(8,1fr)', gap: 2, width: 240 }}>
+          style={{ background: '#121214', border: '1px solid var(--card-border)', gridTemplateColumns: 'repeat(8,1fr)', gap: 2, width: 240 }}>
           {ICON_OPTIONS.map(ic => (
             <button
               key={ic}
@@ -166,7 +166,7 @@ export default function CategoriesClient() {
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') createCategory(); if (e.key === 'Escape') setCreating(null) }}
               className="flex-1 min-w-[140px] px-3 py-2.5 rounded text-sm outline-none"
-              style={{ background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
+              style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
               autoFocus
             />
           </div>
@@ -198,7 +198,7 @@ export default function CategoriesClient() {
         <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditId(null) }}
           className="flex-1 px-2 py-1 rounded text-sm outline-none"
-          style={{ background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
+          style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
           autoFocus />
         <div className="flex gap-1">
           {COLORS.map((c) => (
@@ -307,7 +307,7 @@ export default function CategoriesClient() {
                                 {cat._count.transactions} tx
                               </span>
                               {cat.isDefault && (
-                                <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: '#6366f133', color: 'var(--accent)', fontSize: '10px' }}>
+                                <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: '#00d97633', color: 'var(--accent)', fontSize: '10px' }}>
                                   predeterminada
                                 </span>
                               )}
@@ -366,7 +366,7 @@ export default function CategoriesClient() {
                           {cat._count.transactions} transacciones
                         </span>
                         {cat.isDefault && (
-                          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#6366f133', color: 'var(--accent)' }}>
+                          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#00d97633', color: 'var(--accent)' }}>
                             predeterminada
                           </span>
                         )}

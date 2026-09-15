@@ -47,7 +47,7 @@ export default function LoginPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full px-3 py-2 rounded-lg text-sm outline-none"
-              style={{ background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
+              style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
               autoFocus
               required
               autoComplete="username"
@@ -60,7 +60,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 rounded-lg text-sm outline-none"
-              style={{ background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
+              style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
               required
               autoComplete="current-password"
             />

@@ -260,12 +260,12 @@ export default function ReportClient() {
                   ? `vs ${eur(data.summary.prev.totalExpenses)} mes ant.`
                   : undefined
               }
-              accentColor="#EF4444"
+              accentColor="var(--negative)"
             />
             <KpiCard
               label="Ingresos"
               value={eur(data.summary.totalIncome)}
-              accentColor="#22C55E"
+              accentColor="var(--positive)"
             />
             <KpiCard
               label="Ahorro neto"
@@ -373,7 +373,7 @@ export default function ReportClient() {
                     wrapperStyle={{ fontSize: 11, color: 'var(--muted)' }}
                   />
                   <Bar dataKey="Fijo" stackId="a" fill="var(--accent)" radius={[0, 0, 0, 0]} />
-                  <Bar dataKey="Variable" stackId="a" fill="#EF4444" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="Variable" stackId="a" fill="var(--negative)" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

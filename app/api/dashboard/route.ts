@@ -5,14 +5,12 @@ import {
   startOfMonth, endOfMonth, endOfDay,
   subMonths, subDays, format, differenceInDays,
 } from 'date-fns'
-import { es } from 'date-fns/locale'
 
 async function getPeriodData(from: Date, to: Date, userId: string) {
   const txs = await prisma.transaction.findMany({
     where: { userId, date: { gte: from, lte: to }, isTransfer: false },
     include: {
       category: { select: { id: true, name: true, color: true } },
-      bankAccount: { select: { bank: true, displayName: true } },
     },
     orderBy: { amount: 'asc' },
   })
@@ -33,15 +31,6 @@ async function getPeriodData(from: Date, to: Date, userId: string) {
   const byCategory = Array.from(categoryMap.values())
     .sort((a, b) => b.total - a.total)
     .map((c) => ({ ...c, pct: totalExpenses > 0 ? (c.total / totalExpenses) * 100 : 0 }))
-
-  const sourceMap = new Map<string, { source: string; label: string; total: number; count: number }>()
-  for (const tx of expenses) {
-    const key = tx.bankAccount?.bank ?? 'MANUAL'
-    const label = tx.bankAccount?.displayName ?? 'Importado'
-    const cur = sourceMap.get(key)
-    if (cur) { cur.total += Math.abs(tx.amount); cur.count++ }
-    else sourceMap.set(key, { source: key, label, total: Math.abs(tx.amount), count: 1 })
-  }
 
   const topTransactions = expenses.slice(0, 10).map((tx) => ({
     id: tx.id,
@@ -71,7 +60,6 @@ async function getPeriodData(from: Date, to: Date, userId: string) {
       avgPerDay: totalExpenses / days,
     },
     byCategory,
-    bySource: Array.from(sourceMap.values()),
     topTransactions,
     topMerchants,
     days,
@@ -108,13 +96,6 @@ export async function GET(req: NextRequest) {
   const prevTo = subDays(from, 1)
   const prevFrom = subDays(from, periodDays - 1)
 
-  // Desplazamiento de ingresos: cobro del mes anterior se cuenta como ingreso de este mes
-  const shiftIncome = searchParams.get('shiftIncome') === '1'
-  const incomePrevMonth = subMonths(from, 1)
-  const incomeFrom = shiftIncome ? startOfMonth(incomePrevMonth) : from
-  const incomeTo   = shiftIncome ? endOfMonth(incomePrevMonth) : to
-  const incomePeriodLabel = shiftIncome ? format(incomePrevMonth, 'MMMM yyyy', { locale: es }) : null
-
   const baselineFrom = startOfMonth(subMonths(now, 3))
   const baselineTo = endOfMonth(subMonths(now, 1))
   const baselineDays = Math.max(1, differenceInDays(baselineTo, baselineFrom) + 1)
@@ -124,16 +105,9 @@ export async function GET(req: NextRequest) {
   // Last 3 months start for recurring detection
   const recurringStart = startOfMonth(subMonths(now, 3))
 
-  const [current, prev, shiftedIncomeTxs, trendData, baselineTxs, yearCatTxs, recurringTxs] = await Promise.all([
+  const [current, prev, trendData, baselineTxs, yearCatTxs, recurringTxs] = await Promise.all([
     getPeriodData(from, to, userId),
     getPeriodData(prevFrom, prevTo, userId),
-    // Ingresos del mes anterior (nómina llega antes de que empiece el mes)
-    shiftIncome
-      ? prisma.transaction.findMany({
-          where: { userId, date: { gte: incomeFrom, lte: incomeTo }, amount: { gt: 0 }, isTransfer: false },
-          select: { amount: true },
-        })
-      : Promise.resolve(null),
     Promise.all(
       Array.from({ length: 12 }, (_, i) => {
         const d = subMonths(now, 11 - i)
@@ -257,13 +231,6 @@ export async function GET(req: NextRequest) {
     projection = { projected: Math.round(dailyRate * totalDays * 100) / 100, daysElapsed, totalDays, pctComplete: Math.round((daysElapsed / totalDays) * 100) }
   }
 
-  // ── Ingresos desplazados: sustituir los del periodo por los del mes anterior ──
-  let finalIncome = current.summary.totalIncome
-  if (shiftIncome && shiftedIncomeTxs) {
-    finalIncome = shiftedIncomeTxs.reduce((s, t) => s + t.amount, 0)
-  }
-  const finalNetFlow = finalIncome - current.summary.totalExpenses
-
   // ── Agrupar byCategory por padre ──────────────────────────────────────────
   // Obtenemos parentId para cada categoría del periodo
   const catIds = byCategory.map(c => c.id).filter(Boolean) as string[]
@@ -320,25 +287,20 @@ export async function GET(req: NextRequest) {
   const variableBreakdown = byGroup.filter(g => !g.isFixed)
 
   // ── Savings rate ──
-  const savingsRate = finalIncome > 0
-    ? Math.round((finalNetFlow / finalIncome) * 100)
+  const savingsRate = current.summary.totalIncome > 0
+    ? Math.round((current.summary.netFlow / current.summary.totalIncome) * 100)
     : null
 
   return NextResponse.json({
     from: format(from, 'yyyy-MM-dd'),
     to: format(to, 'yyyy-MM-dd'),
     periodDays,
-    incomeShifted: shiftIncome,
-    incomePeriodLabel,
     summary: {
       ...current.summary,
-      totalIncome: finalIncome,
-      netFlow: finalNetFlow,
       savingsRate,
       prev: prev.summary,
     },
     byCategory,
-    bySource: current.bySource,
     topTransactions: current.topTransactions,
     topMerchants: current.topMerchants,
     trend: trendData,

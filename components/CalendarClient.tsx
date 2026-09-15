@@ -121,7 +121,7 @@ export default function CalendarClient() {
                     borderBottom: '1px solid var(--card-border)',
                     minHeight: 80,
                     background: isSelected
-                      ? 'rgba(99,102,241,.15)'
+                      ? 'rgba(0,217,118,.15)'
                       : intensity > 0
                         ? `rgba(239,68,68,${intensity})`
                         : 'transparent',
@@ -134,24 +134,24 @@ export default function CalendarClient() {
                       className="text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full"
                       style={{
                         background: isToday ? 'var(--accent)' : 'transparent',
-                        color: isToday ? '#fff' : col >= 5 ? '#818cf8' : 'var(--foreground)',
+                        color: isToday ? '#fff' : col >= 5 ? 'var(--accent)' : 'var(--foreground)',
                       }}>
                       {day}
                     </span>
                     {summary && summary.count > 0 && (
                       <span className="text-xs rounded-full px-1"
-                        style={{ background: 'rgba(239,68,68,.15)', color: '#EF4444' }}>
+                        style={{ background: 'var(--negative-soft)', color: 'var(--negative)' }}>
                         {summary.count}
                       </span>
                     )}
                   </div>
                   {summary && summary.expenses > 0 && (
-                    <div className="text-xs font-semibold tabular-nums text-right" style={{ color: '#EF4444' }}>
+                    <div className="text-xs font-semibold tabular-nums text-right" style={{ color: 'var(--negative)' }}>
                       -{eur(summary.expenses)}
                     </div>
                   )}
                   {summary && summary.income > 0 && (
-                    <div className="text-xs font-semibold tabular-nums text-right" style={{ color: '#22C55E' }}>
+                    <div className="text-xs font-semibold tabular-nums text-right" style={{ color: 'var(--positive)' }}>
                       +{eur(summary.income)}
                     </div>
                   )}
@@ -171,11 +171,11 @@ export default function CalendarClient() {
           <div className="grid grid-cols-3 gap-4">
             <div className="card p-4">
               <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>Gasto total</div>
-              <div className="text-2xl font-bold tabular-nums" style={{ color: '#EF4444' }}>{eur(totalExp)}</div>
+              <div className="text-2xl font-bold tabular-nums" style={{ color: 'var(--negative)' }}>{eur(totalExp)}</div>
             </div>
             <div className="card p-4">
               <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>Ingresos</div>
-              <div className="text-2xl font-bold tabular-nums" style={{ color: '#22C55E' }}>{eur(totalInc)}</div>
+              <div className="text-2xl font-bold tabular-nums" style={{ color: 'var(--positive)' }}>{eur(totalInc)}</div>
             </div>
             <div className="card p-4">
               <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>Días con gastos</div>
@@ -208,7 +208,7 @@ export default function CalendarClient() {
                   </div>
                 </div>
                 <span className="text-sm font-semibold tabular-nums flex-shrink-0"
-                  style={{ color: tx.amount < 0 ? '#EF4444' : '#22C55E' }}>
+                  style={{ color: tx.amount < 0 ? 'var(--negative)' : 'var(--positive)' }}>
                   {tx.amount.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                 </span>
               </div>

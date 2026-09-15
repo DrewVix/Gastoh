@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, List, CalendarDays, Tag, Upload, Settings, LogOut, FileBarChart2 } from 'lucide-react'
+import { LayoutDashboard, List, CalendarDays, Tag, Settings, LogOut, FileBarChart2 } from 'lucide-react'
 
 const nav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -11,7 +11,6 @@ const nav = [
   { href: '/calendar', label: 'Calendario', icon: CalendarDays },
   { href: '/categories', label: 'Categorías', icon: Tag },
   { href: '/report', label: 'Informe', icon: FileBarChart2 },
-  { href: '/import', label: 'Importar', icon: Upload },
   { href: '/settings', label: 'Ajustes', icon: Settings },
 ]
 

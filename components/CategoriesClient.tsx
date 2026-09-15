@@ -219,21 +219,23 @@ export default function CategoriesClient() {
 
   function EditRow({ cat }: { cat: Category }) {
     return (
-      <div className="flex items-center gap-3 flex-1">
+      <div className="flex items-center gap-2 flex-wrap flex-1">
         <IconPicker value={editIcon} onChange={setEditIcon} color={editColor} />
         <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditId(null) }}
-          className="flex-1 px-2 py-1 rounded text-sm outline-none"
+          className="flex-1 min-w-[100px] px-2 py-1 rounded text-sm outline-none"
           style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
           autoFocus />
-        <div className="flex gap-1">
+        <div className="flex gap-1 flex-wrap">
           {COLORS.map((c) => (
             <button key={c} onClick={() => setEditColor(c)} className="w-4 h-4 rounded-full border-2"
               style={{ background: c, borderColor: editColor === c ? '#fff' : 'transparent' }} />
           ))}
         </div>
-        <button onClick={saveEdit} className="p-1 rounded text-green-400 hover:bg-white/10"><Check size={14} /></button>
-        <button onClick={() => setEditId(null)} className="p-1 rounded hover:bg-white/10" style={{ color: 'var(--muted)' }}><X size={14} /></button>
+        <div className="flex items-center gap-1">
+          <button onClick={saveEdit} className="p-1 rounded text-green-400 hover:bg-white/10"><Check size={14} /></button>
+          <button onClick={() => setEditId(null)} className="p-1 rounded hover:bg-white/10" style={{ color: 'var(--muted)' }}><X size={14} /></button>
+        </div>
       </div>
     )
   }

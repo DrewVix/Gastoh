@@ -11,11 +11,11 @@ interface Category {
   color: string | null
   parentId: string | null
   isFixed: boolean
-  parent: { id: string; name: string; color: string | null; icon: string | null; isFixed: boolean } | null
+  parent: { id: string; name: string; color: string | null; icon: string | null } | null
 }
 
 function isFixedExpense(category: Category | null): boolean {
-  return !!category && (category.isFixed || category.parent?.isFixed === true)
+  return !!category?.isFixed
 }
 interface Transaction {
   id: string

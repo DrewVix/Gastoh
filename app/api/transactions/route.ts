@@ -59,11 +59,9 @@ export async function GET(req: NextRequest) {
     and.push({ OR: [{ description: { contains: q } }, { merchantName: { contains: q } }] })
   }
 
-  // Fijo/variable: hereda de la categoría o de su grupo padre.
-  if (fixed === 'fixed' || fixed === 'variable') {
-    const isFixedCondition = { OR: [{ category: { isFixed: true } }, { category: { parent: { isFixed: true } } }] }
-    and.push(fixed === 'fixed' ? isFixedCondition : { NOT: isFixedCondition })
-  }
+  // Fijo/variable: se marca por categoría (subcategoría o grupo), sin herencia.
+  if (fixed === 'fixed') where.category = { isFixed: true }
+  else if (fixed === 'variable') and.push({ OR: [{ categoryId: null }, { category: { isFixed: false } }] })
 
   // Rango de importe: se compara por magnitud (valor absoluto), sea gasto o ingreso.
   const min = minAmount ? Math.abs(parseFloat(minAmount)) : null
@@ -83,7 +81,7 @@ export async function GET(req: NextRequest) {
     prisma.transaction.findMany({
       where,
       include: {
-        category: { select: { id: true, name: true, icon: true, color: true, parentId: true, isFixed: true, parent: { select: { id: true, name: true, color: true, icon: true, isFixed: true } } } },
+        category: { select: { id: true, name: true, icon: true, color: true, parentId: true, isFixed: true, parent: { select: { id: true, name: true, color: true, icon: true } } } },
       },
       orderBy: sortBy === 'amount' ? [{ amount: sortDir }] : [{ date: sortDir }],
       skip: (page - 1) * limit,
@@ -131,7 +129,7 @@ export async function POST(req: NextRequest) {
       isManual: true,
     },
     include: {
-      category: { select: { id: true, name: true, icon: true, color: true, parentId: true, isFixed: true, parent: { select: { id: true, name: true, color: true, icon: true, isFixed: true } } } },
+      category: { select: { id: true, name: true, icon: true, color: true, parentId: true, isFixed: true, parent: { select: { id: true, name: true, color: true, icon: true } } } },
     },
   })
 

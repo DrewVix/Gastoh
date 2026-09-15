@@ -1,6 +1,6 @@
 # Gastoh 💸
 
-Gestor personal de finanzas con importación de extractos bancarios (Trade Republic, OpenBank…), categorización automática y dashboard mensual/anual.
+Gestor personal de finanzas con importación de extractos bancarios (Trade Republic, OpenBank…), categorización 100% manual y dashboard mensual/anual.
 
 ## Requisitos
 

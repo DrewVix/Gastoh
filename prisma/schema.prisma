@@ -17,7 +17,6 @@ model User {
   transactions Transaction[]
   categories   Category[]
   bankAccounts BankAccount[]
-  merchantRules MerchantRule[]
 }
 
 model BankAccount {
@@ -74,33 +73,8 @@ model Category {
   parent       Category?      @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
   children     Category[]     @relation("CategoryTree")
   transactions Transaction[]
-  rules        CategoryRule[]
 
   @@unique([userId, name])
   @@index([userId])
   @@index([parentId])
-}
-
-model CategoryRule {
-  id         String   @id @default(cuid())
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  pattern    String
-  isRegex    Boolean  @default(false)
-  priority   Int      @default(0)
-  createdAt  DateTime @default(now())
-}
-
-model MerchantRule {
-  id            String   @id @default(cuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
-  pattern       String
-  matchType     String   @default("contains")
-  canonicalName String
-  priority      Int      @default(0)
-  createdAt     DateTime @default(now())
-
-  @@index([userId])
-  @@index([priority])
 }

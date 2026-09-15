@@ -7,13 +7,10 @@ export async function GET() {
   if (!session.isLoggedIn) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const userId = session.userId!
 
-  const [txs, rules] = await Promise.all([
-    prisma.transaction.findMany({
-      where: { userId, amount: { lt: 0 }, isTransfer: false },
-      select: { merchantName: true, description: true, amount: true },
-    }),
-    prisma.merchantRule.findMany({ where: { userId }, select: { canonicalName: true } }),
-  ])
+  const txs = await prisma.transaction.findMany({
+    where: { userId, amount: { lt: 0 }, isTransfer: false },
+    select: { merchantName: true, description: true, amount: true },
+  })
 
   const map = new Map<string, { count: number; total: number }>()
 
@@ -27,16 +24,6 @@ export async function GET() {
     const cur = map.get(found ?? key)
     if (cur) { cur.count++; cur.total += Math.abs(tx.amount) }
     else map.set(found ?? key, { count: 1, total: Math.abs(tx.amount) })
-  }
-
-  // Add canonical names from rules that aren't already in the map
-  for (const rule of rules) {
-    const name = rule.canonicalName.trim()
-    if (!name) continue
-    const normalized = name.toLowerCase()
-    let exists = false
-    for (const k of map.keys()) { if (k.toLowerCase() === normalized) { exists = true; break } }
-    if (!exists) map.set(name, { count: 0, total: 0 })
   }
 
   const result = Array.from(map.entries())

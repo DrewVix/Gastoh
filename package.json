@@ -7,8 +7,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "setup": "npx prisma migrate deploy && npx tsx scripts/seed-categories.ts",
-    "seed": "npx tsx scripts/seed-categories.ts",
     "init-admin": "npx tsx scripts/init-admin.ts"
   },
   "dependencies": {

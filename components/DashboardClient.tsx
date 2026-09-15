@@ -115,7 +115,7 @@ function sign(n: number) { return n > 0 ? '+' : '' }
 function TrendBadge({ trend }: { trend: number | null }) {
   if (trend == null) return <span style={{ color: 'var(--muted)' }}>—</span>
   const neutral = Math.abs(trend) <= 5
-  const color = neutral ? 'var(--muted)' : trend > 0 ? '#EF4444' : '#22C55E'
+  const color = neutral ? 'var(--muted)' : trend > 0 ? 'var(--negative)' : 'var(--positive)'
   const Icon = neutral ? Minus : trend > 0 ? TrendingUp : TrendingDown
   return (
     <span className="inline-flex items-center gap-0.5 text-xs tabular-nums" style={{ color }}>
@@ -124,8 +124,10 @@ function TrendBadge({ trend }: { trend: number | null }) {
   )
 }
 
-const TT = { background: '#1a1d27', border: '1px solid #2a2d3a', borderRadius: 8, fontSize: 12 }
-const TICK = { fontSize: 11, fill: '#6b7280' }
+const TT = { background: '#1d1b16', border: '1px solid #332e25', borderRadius: 8, fontSize: 12 }
+const TICK = { fontSize: 11, fill: '#988f7d' }
+const CHART_NEGATIVE = '#c15c4c'
+const CHART_POSITIVE = '#6fa27d'
 
 export default function DashboardClient() {
   const [preset, setPreset] = useState<Preset>('month')
@@ -242,13 +244,13 @@ export default function DashboardClient() {
             <span className="text-xs" style={{ color: 'var(--muted)' }}>Desde</span>
             <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)}
               className="text-sm px-3 py-1.5 rounded-lg outline-none"
-              style={{ background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }} />
+              style={{ background: '#100f0c', border: '1px solid var(--card-border)', color: 'var(--foreground)' }} />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs" style={{ color: 'var(--muted)' }}>Hasta</span>
             <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)}
               className="text-sm px-3 py-1.5 rounded-lg outline-none"
-              style={{ background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }} />
+              style={{ background: '#100f0c', border: '1px solid var(--card-border)', color: 'var(--foreground)' }} />
           </div>
         </div>
       )}
@@ -262,22 +264,20 @@ export default function DashboardClient() {
             style={{ background: 'var(--card)', border: '1px solid var(--card-border)' }}>
 
             <div className="px-4 md:px-6 py-4 md:py-5">
-              <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>
-                Gasto · <span className="normal-case font-normal">{periodLabel}</span>
+              <div className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
+                Gasto · {periodLabel}
               </div>
-              <div className="text-2xl md:text-3xl font-bold tabular-nums">{eur(s!.totalExpenses)}</div>
+              <div className="font-display text-2xl md:text-3xl font-semibold tabular-nums">{eur(s!.totalExpenses)}</div>
               {s!.prev.totalExpenses > 0 && (() => {
                 const delta = s!.totalExpenses - s!.prev.totalExpenses
                 const pct = (delta / s!.prev.totalExpenses) * 100
+                const deltaColor = delta > 0 ? 'var(--negative)' : 'var(--positive)'
                 return (
-                  <div className="flex items-center gap-2 mt-2 flex-wrap">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-                      style={{ background: delta > 0 ? '#EF444420' : '#22C55E20', color: delta > 0 ? '#EF4444' : '#22C55E' }}>
-                      {delta > 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-                      {sign(pct)}{pct.toFixed(1)}%
-                    </span>
-                    <span className="text-xs" style={{ color: 'var(--muted)' }}>
-                      {sign(delta)}{eur(Math.abs(delta))} vs {prevLabel.toLowerCase()}
+                  <div className="flex items-center gap-1.5 mt-2 text-xs flex-wrap" style={{ color: deltaColor }}>
+                    {delta > 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                    <span className="font-medium">{sign(pct)}{pct.toFixed(1)}%</span>
+                    <span style={{ color: 'var(--muted)' }}>
+                      ({sign(delta)}{eur(Math.abs(delta))} vs {prevLabel.toLowerCase()})
                     </span>
                   </div>
                 )
@@ -285,23 +285,21 @@ export default function DashboardClient() {
             </div>
 
             <div className="px-4 md:px-6 py-4 md:py-5" style={{ borderLeft: '1px solid var(--card-border)' }}>
-              <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>Flujo neto</div>
-              <div className="text-2xl md:text-3xl font-bold tabular-nums" style={{ color: s!.netFlow >= 0 ? '#22C55E' : '#EF4444' }}>
+              <div className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Flujo neto</div>
+              <div className="font-display text-2xl md:text-3xl font-semibold tabular-nums" style={{ color: s!.netFlow >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
                 {eur(s!.netFlow)}
               </div>
               {s!.savingsRate != null && (
                 <div className="mt-2 text-xs">
-                  <span style={{ color: s!.savingsRate >= 0 ? '#22C55E' : '#EF4444' }}>
+                  <span style={{ color: s!.savingsRate >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
                     {s!.savingsRate >= 0 ? `Ahorro del ${s!.savingsRate}%` : `Déficit del ${Math.abs(s!.savingsRate)}%`}
                   </span>
                   <span className="ml-1" style={{ color: 'var(--muted)' }}>de ingresos</span>
-                </div>
-              )}
-              {s!.totalIncome > 0 && (
-                <div className="text-xs mt-0.5" style={{ color: '#22C55E' }}>
-                  {eur(s!.totalIncome)} ingresados
-                  {data.incomeShifted && data.incomePeriodLabel && (
-                    <span className="ml-1 opacity-60">(nómina {data.incomePeriodLabel})</span>
+                  {s!.totalIncome > 0 && (
+                    <span className="ml-1" style={{ color: 'var(--muted)' }}>
+                      · {eur(s!.totalIncome)} ingresados
+                      {data.incomeShifted && data.incomePeriodLabel && ` (nómina ${data.incomePeriodLabel})`}
+                    </span>
                   )}
                 </div>
               )}
@@ -311,10 +309,10 @@ export default function DashboardClient() {
               style={{ borderColor: 'var(--card-border)' }}>
               {data.projection ? (
                 <>
-                  <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>
+                  <div className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
                     {preset === 'year' ? 'Proyección fin de año' : 'Proyección fin de mes'}
                   </div>
-                  <div className="text-2xl md:text-3xl font-bold tabular-nums">{eur(data.projection.projected)}</div>
+                  <div className="font-display text-2xl md:text-3xl font-semibold tabular-nums">{eur(data.projection.projected)}</div>
                   <div className="mt-2 flex items-center gap-2">
                     <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--card-border)' }}>
                       <div className="h-1.5 rounded-full" style={{ width: `${data.projection.pctComplete}%`, background: 'var(--accent)' }} />
@@ -326,13 +324,13 @@ export default function DashboardClient() {
                 </>
               ) : (
                 <>
-                  <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>Media diaria</div>
-                  <div className="text-2xl md:text-3xl font-bold tabular-nums">{eur(s!.avgPerDay)}<span className="text-base font-normal">/día</span></div>
+                  <div className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Media diaria</div>
+                  <div className="font-display text-2xl md:text-3xl font-semibold tabular-nums">{eur(s!.avgPerDay)}<span className="text-base font-normal">/día</span></div>
                 </>
               )}
               {data.overallTrendPct !== 0 && (
                 <div className="mt-2 text-xs flex items-center gap-1"
-                  style={{ color: data.overallTrendPct > 0 ? '#EF4444' : '#22C55E' }}>
+                  style={{ color: data.overallTrendPct > 0 ? 'var(--negative)' : 'var(--positive)' }}>
                   {data.overallTrendPct > 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
                   Tendencia {sign(data.overallTrendPct)}{data.overallTrendPct}% últimos 6m
                 </div>
@@ -341,10 +339,10 @@ export default function DashboardClient() {
 
             <div className="px-4 md:px-6 py-4 md:py-5 border-t md:border-t-0 border-l"
               style={{ borderColor: 'var(--card-border)' }}>
-              <div className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>
+              <div className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
                 Gastos fijos detectados
               </div>
-              <div className="text-2xl md:text-3xl font-bold tabular-nums">{eur(data.recurringTotal)}<span className="text-base font-normal">/mes</span></div>
+              <div className="font-display text-2xl md:text-3xl font-semibold tabular-nums">{eur(data.recurringTotal)}<span className="text-base font-normal">/mes</span></div>
               <div className="text-xs mt-2" style={{ color: 'var(--muted)' }}>
                 {data.recurring.length} pagos recurrentes identificados
               </div>
@@ -358,9 +356,9 @@ export default function DashboardClient() {
             {(data.byGroup ?? []).length > 0 && (
               <div className="card overflow-hidden min-w-0 overflow-x-auto">
                 <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--card-border)' }}>
-                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>
+                  <span className="text-sm font-semibold">
                     Gasto por categoría
-                    <span className="ml-2 normal-case font-normal opacity-60">— expande grupos · clic en subcategoría para ver transacciones</span>
+                    <span className="ml-2 font-normal text-xs" style={{ color: 'var(--muted)' }}>— expande grupos · clic en subcategoría para ver transacciones</span>
                   </span>
                 </div>
 
@@ -510,7 +508,7 @@ export default function DashboardClient() {
                                           <span className="text-xs truncate" style={{ color: 'var(--muted)' }} title={cat.name}>{cat.name}</span>
                                           {cat.isRecord && (
                                             <span className="text-xs px-1 py-0.5 rounded font-semibold flex-shrink-0"
-                                              style={{ background: '#EF444420', color: '#EF4444', fontSize: '9px' }}>RÉCORD</span>
+                                              style={{ background: 'var(--negative-soft)', color: 'var(--negative)', fontSize: '9px' }}>RÉCORD</span>
                                           )}
                                         </div>
                                         <span className="text-xs font-semibold tabular-nums text-right">{eur(cat.total)}</span>
@@ -518,11 +516,11 @@ export default function DashboardClient() {
                                           {cat.prevTotal != null ? eur(cat.prevTotal) : '—'}
                                         </span>
                                         <span className="text-xs tabular-nums text-right font-medium"
-                                          style={{ color: diff == null ? 'var(--muted)' : diff > 0 ? '#EF4444' : '#22C55E' }}>
+                                          style={{ color: diff == null ? 'var(--muted)' : diff > 0 ? 'var(--negative)' : 'var(--positive)' }}>
                                           {diff != null ? `${sign(diff)}${eur(Math.abs(diff))}` : '—'}
                                         </span>
                                         <span className="text-xs tabular-nums text-right"
-                                          style={{ color: diffPct == null ? 'var(--muted)' : diffPct > 0 ? '#EF4444' : '#22C55E' }}>
+                                          style={{ color: diffPct == null ? 'var(--muted)' : diffPct > 0 ? 'var(--negative)' : 'var(--positive)' }}>
                                           {diffPct != null ? `${sign(diffPct)}${diffPct.toFixed(1)}%` : '—'}
                                         </span>
                                         <span className="text-xs tabular-nums text-right" style={{ color: 'var(--muted)' }}>
@@ -593,7 +591,7 @@ export default function DashboardClient() {
                                             {tx.bankAccount?.displayName ?? 'Importado'}
                                           </span>
                                           <span className="text-xs font-semibold tabular-nums flex-shrink-0"
-                                            style={{ color: tx.amount < 0 ? '#EF4444' : '#22C55E' }}>
+                                            style={{ color: tx.amount < 0 ? 'var(--negative)' : 'var(--positive)' }}>
                                             {tx.amount.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                                           </span>
                                         </div>
@@ -627,7 +625,7 @@ export default function DashboardClient() {
                 return (
                   <div className="card overflow-hidden">
                     <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--card-border)' }}>
-                      <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>
+                      <span className="text-sm font-semibold">
                         Objetivo de ahorro
                       </span>
                       <button
@@ -653,7 +651,7 @@ export default function DashboardClient() {
                               if (e.key === 'Escape') setEditingGoal(false)
                             }}
                             className="flex-1 px-3 py-1.5 rounded text-sm outline-none"
-                            style={{ background: '#0f1117', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
+                            style={{ background: '#100f0c', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
                             autoFocus
                           />
                           <span className="text-sm" style={{ color: 'var(--muted)' }}>€</span>
@@ -682,7 +680,7 @@ export default function DashboardClient() {
                         {/* Barra de progreso */}
                         <div>
                           <div className="flex items-end justify-between mb-1.5">
-                            <span className="text-2xl font-bold tabular-nums" style={{ color: isOnTrack ? '#22C55E' : '#F59E0B' }}>
+                            <span className="font-display text-2xl font-semibold tabular-nums" style={{ color: isOnTrack ? 'var(--positive)' : 'var(--accent)' }}>
                               {eur(actual)}
                             </span>
                             <span className="text-sm tabular-nums" style={{ color: 'var(--muted)' }}>
@@ -691,10 +689,10 @@ export default function DashboardClient() {
                           </div>
                           <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--card-border)' }}>
                             <div className="h-2 rounded-full transition-all"
-                              style={{ width: `${pct}%`, background: isOnTrack ? '#22C55E' : pct > 50 ? '#F59E0B' : '#EF4444' }} />
+                              style={{ width: `${pct}%`, background: isOnTrack ? 'var(--positive)' : pct > 50 ? 'var(--accent)' : 'var(--negative)' }} />
                           </div>
                           <div className="flex justify-between mt-1">
-                            <span className="text-xs" style={{ color: isOnTrack ? '#22C55E' : '#F59E0B' }}>
+                            <span className="text-xs" style={{ color: isOnTrack ? 'var(--positive)' : 'var(--accent)' }}>
                               {pct}% del objetivo
                             </span>
                             {deficit > 0 && (
@@ -709,19 +707,19 @@ export default function DashboardClient() {
                         <div className="space-y-1.5 text-xs pt-1" style={{ borderTop: '1px solid var(--card-border)' }}>
                           <div className="flex justify-between pt-2">
                             <span style={{ color: 'var(--muted)' }}>Ingresos</span>
-                            <span className="tabular-nums" style={{ color: '#22C55E' }}>+{eur(s.totalIncome)}</span>
+                            <span className="tabular-nums" style={{ color: 'var(--positive)' }}>+{eur(s.totalIncome)}</span>
                           </div>
                           <div className="flex justify-between">
                             <span style={{ color: 'var(--muted)' }}>Gastos fijos</span>
-                            <span className="tabular-nums" style={{ color: '#EF4444' }}>−{eur(data.recurringTotal)}</span>
+                            <span className="tabular-nums" style={{ color: 'var(--negative)' }}>−{eur(data.recurringTotal)}</span>
                           </div>
                           <div className="flex justify-between">
                             <span style={{ color: 'var(--muted)' }}>Gasto variable</span>
-                            <span className="tabular-nums" style={{ color: '#EF4444' }}>−{eur(Math.max(0, s.totalExpenses - data.recurringTotal))}</span>
+                            <span className="tabular-nums" style={{ color: 'var(--negative)' }}>−{eur(Math.max(0, s.totalExpenses - data.recurringTotal))}</span>
                           </div>
                           <div className="flex justify-between font-semibold pt-1" style={{ borderTop: '1px solid var(--card-border)' }}>
                             <span>Ahorro real</span>
-                            <span className="tabular-nums" style={{ color: actual >= 0 ? '#22C55E' : '#EF4444' }}>
+                            <span className="tabular-nums" style={{ color: actual >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
                               {actual >= 0 ? '+' : ''}{eur(s.netFlow)}
                             </span>
                           </div>
@@ -742,9 +740,9 @@ export default function DashboardClient() {
               {data.insights.length > 0 && (
                 <div className="card overflow-hidden">
                   <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid var(--card-border)' }}>
-                    <AlertTriangle size={13} style={{ color: '#F59E0B' }} />
-                    <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>
-                      Donde puedes ahorrar
+                    <AlertTriangle size={13} style={{ color: 'var(--accent)' }} />
+                    <span className="text-sm font-semibold">
+                      Dónde puedes ahorrar
                     </span>
                   </div>
                   <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
@@ -761,7 +759,7 @@ export default function DashboardClient() {
                         </div>
                         <div className="text-right flex-shrink-0">
                           <div className="text-sm font-semibold tabular-nums">{eur(ins.total)}</div>
-                          <div className="flex items-center justify-end gap-1 text-xs mt-0.5" style={{ color: '#EF4444' }}>
+                          <div className="flex items-center justify-end gap-1 text-xs mt-0.5" style={{ color: 'var(--negative)' }}>
                             <TrendingUp size={10} />+{ins.trend}%
                           </div>
                         </div>
@@ -775,7 +773,7 @@ export default function DashboardClient() {
               {data.topMerchants.length > 0 && (
                 <div className="card overflow-hidden">
                   <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--card-border)' }}>
-                    <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Donde más gastas</span>
+                    <span className="text-sm font-semibold">Dónde más gastas</span>
                   </div>
                   <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
                     {data.topMerchants.map((m, i) => (
@@ -801,7 +799,7 @@ export default function DashboardClient() {
                   <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--card-border)' }}>
                     <div className="flex items-center gap-2">
                       <RefreshCw size={13} style={{ color: 'var(--accent)' }} />
-                      <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>
+                      <span className="text-sm font-semibold">
                         Gastos fijos
                       </span>
                     </div>
@@ -833,16 +831,16 @@ export default function DashboardClient() {
 
             {/* Gráfico 12 meses */}
             <div className="card p-5">
-              <div className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: 'var(--muted)' }}>Evolución 12 meses</div>
+              <div className="text-sm font-semibold mb-4">Evolución 12 meses</div>
               <ResponsiveContainer width="100%" height={250} className="md:!h-[200px]">
                 <BarChart data={data.trend} barGap={2}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2d3a" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#332e25" vertical={false} />
                   <XAxis dataKey="month" tick={TICK} axisLine={false} tickLine={false} />
                   <YAxis tick={TICK} axisLine={false} tickLine={false}
                     tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} width={36} />
                   <Tooltip contentStyle={TT} formatter={(v) => eur(Number(v))} />
-                  <Bar dataKey="expenses" name="Gastos" fill="#EF4444" radius={[3, 3, 0, 0]} />
-                  <Bar dataKey="income" name="Ingresos" fill="#22C55E" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="expenses" name="Gastos" fill={CHART_NEGATIVE} radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="income" name="Ingresos" fill={CHART_POSITIVE} radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -851,7 +849,7 @@ export default function DashboardClient() {
             {data.topTransactions.length > 0 && (
               <div className="card overflow-hidden">
                 <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--card-border)' }}>
-                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Mayores gastos</span>
+                  <span className="text-sm font-semibold">Mayores gastos</span>
                 </div>
                 <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
                   {data.topTransactions.map((tx) => (
@@ -874,8 +872,8 @@ export default function DashboardClient() {
             <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
               {data.bySource.map((src) => (
                 <div key={src.source} className="card p-4 min-w-0">
-                  <div className="text-xs font-medium uppercase tracking-wide mb-1 truncate" style={{ color: 'var(--muted)' }} title={src.label}>{src.label}</div>
-                  <div className="text-xl font-semibold tabular-nums">{eur(src.total)}</div>
+                  <div className="text-xs mb-1 truncate" style={{ color: 'var(--muted)' }} title={src.label}>{src.label}</div>
+                  <div className="font-display text-xl font-semibold tabular-nums">{eur(src.total)}</div>
                   <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{src.count} transacciones</div>
                 </div>
               ))}

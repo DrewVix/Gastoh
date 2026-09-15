@@ -13,8 +13,6 @@ interface MappedTx {
   description: string
   amount: number
   externalId?: string
-  mccCode?: string
-  trType?: string
 }
 
 const DATE_HINTS = ['fecha', 'date', 'fecha valor', 'fecha operacion', 'value date', 'booking date', 'trade date', 'buchungsdatum']
@@ -112,7 +110,6 @@ export default function ImportClient() {
   const [creditCol, setCreditCol] = useState('')
   const [debitCol, setDebitCol] = useState('')
   const [externalIdCol, setExternalIdCol] = useState('')
-  const [mccCol, setMccCol] = useState('')
   const [typeCol, setTypeCol] = useState('')
   const [preview, setPreview] = useState<MappedTx[]>([])
   const [loading, setLoading] = useState(false)
@@ -162,7 +159,6 @@ export default function ImportClient() {
         setDescFallbackCol(detectExact(hdrs, 'description'))
         setAmtCol(detectExact(hdrs, 'amount'))
         setExternalIdCol(detectExact(hdrs, 'transaction_id'))
-        setMccCol(detectExact(hdrs, 'mcc_code'))
         setTypeCol(detectExact(hdrs, 'type'))
         setSplitMode(false)
         setShowAdvanced(true)
@@ -178,7 +174,6 @@ export default function ImportClient() {
         setDebitCol(detectedDebit)
         setSplitMode(!detectedAmt && !!(detectedCredit || detectedDebit))
         setExternalIdCol('')
-        setMccCol('')
         setTypeCol('')
       }
 
@@ -213,8 +208,6 @@ export default function ImportClient() {
 
       const tx: MappedTx = { date: parseDate(rawDate), description: desc, amount: amt }
       if (externalIdCol && row[externalIdCol]) tx.externalId = row[externalIdCol]
-      if (mccCol && row[mccCol]) tx.mccCode = row[mccCol]
-      if (typeCol && row[typeCol]) tx.trType = row[typeCol]
       return [tx]
     })
   }
@@ -352,7 +345,7 @@ export default function ImportClient() {
         <div className="flex items-center gap-2 px-4 py-3 rounded-lg mb-4 text-sm"
           style={{ background: 'rgba(99,102,241,.12)', border: '1px solid rgba(99,102,241,.3)', color: '#a5b4fc' }}>
           <Zap size={14} />
-          <span>Formato <strong>Trade Republic</strong> detectado — columnas mapeadas automáticamente, incluyendo MCC y tipo de transacción.</span>
+          <span>Formato <strong>Trade Republic</strong> detectado — columnas mapeadas automáticamente.</span>
         </div>
       )}
 
@@ -376,20 +369,19 @@ export default function ImportClient() {
           )}
         </div>
 
-        {/* Advanced / enrichment columns */}
+        {/* Advanced columns */}
         <div>
           <button
             onClick={() => setShowAdvanced(v => !v)}
             className="text-xs flex items-center gap-1"
             style={{ color: 'var(--muted)' }}
           >
-            {showAdvanced ? '▾' : '▸'} Campos de categorización avanzada
+            {showAdvanced ? '▾' : '▸'} Campos avanzados
           </button>
           {showAdvanced && (
             <div className="mt-3 space-y-3 pl-3" style={{ borderLeft: '2px solid var(--card-border)' }}>
               <ColSelect label="ID externo (para evitar duplicados)" value={externalIdCol} onChange={setExternalIdCol} headers={headers} required={false} optional />
-              <ColSelect label="Código MCC (categoría del comercio)" value={mccCol} onChange={setMccCol} headers={headers} required={false} optional />
-              <ColSelect label="Tipo de transacción (ej: INTEREST_PAYMENT)" value={typeCol} onChange={setTypeCol} headers={headers} required={false} optional />
+              <ColSelect label="Tipo de transacción (respaldo de descripción, ej: INTEREST_PAYMENT)" value={typeCol} onChange={setTypeCol} headers={headers} required={false} optional />
             </div>
           )}
         </div>
@@ -438,9 +430,6 @@ export default function ImportClient() {
       <h2 className="text-xl font-semibold mb-1">Preview</h2>
       <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
         {preview.length} transacciones listas para importar
-        {preview.some(t => t.mccCode) && (
-          <span className="ml-2 text-indigo-400">· con código MCC</span>
-        )}
       </p>
 
       <div className="card overflow-hidden mb-4">
@@ -450,12 +439,6 @@ export default function ImportClient() {
               <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
                 <th className="px-4 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Fecha</th>
                 <th className="px-4 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Descripción</th>
-                {preview.some(t => t.mccCode) && (
-                  <th className="px-4 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>MCC</th>
-                )}
-                {preview.some(t => t.trType) && (
-                  <th className="px-4 py-2 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>Tipo</th>
-                )}
                 <th className="px-4 py-2 text-right text-xs font-medium" style={{ color: 'var(--muted)' }}>Importe</th>
               </tr>
             </thead>
@@ -464,12 +447,6 @@ export default function ImportClient() {
                 <tr key={i} style={{ borderBottom: '1px solid var(--card-border)' }}>
                   <td className="px-4 py-2 text-xs whitespace-nowrap" style={{ color: 'var(--muted)' }}>{tx.date}</td>
                   <td className="px-4 py-2 text-xs max-w-xs truncate">{tx.description}</td>
-                  {preview.some(t => t.mccCode) && (
-                    <td className="px-4 py-2 text-xs" style={{ color: 'var(--muted)' }}>{tx.mccCode || '—'}</td>
-                  )}
-                  {preview.some(t => t.trType) && (
-                    <td className="px-4 py-2 text-xs" style={{ color: 'var(--muted)' }}>{tx.trType || '—'}</td>
-                  )}
                   <td className={`px-4 py-2 text-xs text-right font-mono ${tx.amount < 0 ? 'text-red-400' : 'text-green-400'}`}>
                     {tx.amount > 0 ? '+' : ''}{tx.amount.toFixed(2)} €
                   </td>

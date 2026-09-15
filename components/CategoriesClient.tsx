@@ -14,7 +14,7 @@ interface Category {
   isFixed: boolean
   parentId: string | null
   children: Category[]
-  _count: { transactions: number; rules: number }
+  _count: { transactions: number }
 }
 
 function CategoryIcon({ name, size = 14, color }: { name: string | null | undefined; size?: number; color?: string }) {
@@ -306,9 +306,6 @@ export default function CategoriesClient() {
                               <span className="text-xs" style={{ color: 'var(--muted)' }}>
                                 {cat._count.transactions} tx
                               </span>
-                              <span className="text-xs" style={{ color: 'var(--muted)' }}>
-                                {cat._count.rules} reglas
-                              </span>
                               {cat.isDefault && (
                                 <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: '#6366f133', color: 'var(--accent)', fontSize: '10px' }}>
                                   predeterminada
@@ -366,7 +363,7 @@ export default function CategoriesClient() {
                         </span>
                         <span className="flex-1 min-w-0 text-sm truncate" title={cat.name}>{cat.name}</span>
                         <span className="text-xs truncate flex-shrink-0" style={{ color: 'var(--muted)' }}>
-                          {cat._count.transactions} transacciones · {cat._count.rules} reglas
+                          {cat._count.transactions} transacciones
                         </span>
                         {cat.isDefault && (
                           <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#6366f133', color: 'var(--accent)' }}>

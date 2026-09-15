@@ -51,7 +51,7 @@ export async function seedDefaultCategories(userId: string) {
 
   for (const group of GROUPS) {
     const groupRecord = await prisma.category.create({
-      data: { userId, name: group.name, icon: group.icon, color: group.color, isDefault: false },
+      data: { userId, name: group.name, icon: group.icon, color: group.color, isDefault: false, isGroup: true },
     })
     for (const childName of group.children) {
       const child = await prisma.category.findFirst({ where: { name: childName, userId } })

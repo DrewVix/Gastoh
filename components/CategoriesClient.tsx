@@ -97,10 +97,11 @@ export default function CategoriesClient() {
   async function createCategory() {
     if (!newName.trim()) return
     const parentId = typeof creating === 'object' ? creating.parentId : null
+    const isGroup = creating === 'group'
     await fetch('/api/categories', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newName, color: newColor, parentId }),
+      body: JSON.stringify({ name: newName, color: newColor, parentId, isGroup }),
     })
     setCreating('closed')
     setNewName('')

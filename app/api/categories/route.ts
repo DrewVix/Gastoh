@@ -21,10 +21,10 @@ export async function GET() {
     orderBy: { name: 'asc' },
   })
 
-  // Grupos: categorías sin parentId que tienen hijos
-  const groups = all.filter(c => c.parentId === null && c.children.length > 0)
-  // Sin grupo: categorías raíz sin hijos (ej. "Otro")
-  const ungrouped = all.filter(c => c.parentId === null && c.children.length === 0)
+  // Grupos: categorías sin parentId marcadas como grupo, o que ya tienen hijos
+  const groups = all.filter(c => c.parentId === null && (c.isGroup || c.children.length > 0))
+  // Sin grupo: categorías raíz sin hijos y no marcadas como grupo (ej. "Otro")
+  const ungrouped = all.filter(c => c.parentId === null && !c.isGroup && c.children.length === 0)
   // Flat: todas, para selectores
   const flat = all
 
@@ -36,11 +36,11 @@ export async function POST(req: NextRequest) {
   if (!session.isLoggedIn) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const userId = session.userId!
 
-  const { name, icon, color, parentId } = await req.json()
+  const { name, icon, color, parentId, isGroup } = await req.json()
   if (!name) return NextResponse.json({ error: 'Name required' }, { status: 400 })
 
   const category = await prisma.category.create({
-    data: { userId, name, icon, color, parentId: parentId ?? null },
+    data: { userId, name, icon, color, parentId: parentId ?? null, isGroup: Boolean(isGroup) },
     include: { parent: { select: { id: true, name: true, color: true, icon: true } } },
   })
 

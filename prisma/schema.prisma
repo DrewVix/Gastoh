@@ -51,6 +51,7 @@ model Category {
   color        String?
   isDefault    Boolean        @default(false)
   isFixed      Boolean        @default(false)
+  isGroup      Boolean        @default(false)
   parentId     String?
   parent       Category?      @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
   children     Category[]     @relation("CategoryTree")

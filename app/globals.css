@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000000;
+  --background: #0a0a0b;
   --foreground: #f5f5f7;
   --card: #121214;
   --card-border: #1e1e21;
@@ -30,9 +30,15 @@ body {
   background: var(--card);
   border: 1px solid var(--card-border);
   border-radius: 1rem;
+  box-shadow: 0 8px 24px -16px rgba(0, 0, 0, .6);
 }
 
 .font-display {
   font-family: var(--font-display), -apple-system, sans-serif;
   letter-spacing: -0.02em;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--accent);
 }

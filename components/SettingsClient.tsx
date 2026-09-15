@@ -20,7 +20,9 @@ export default function SettingsClient() {
   const [userError, setUserError] = useState('')
   const [changePwId, setChangePwId] = useState<string | null>(null)
   const [newPw, setNewPw] = useState('')
+  const [pwError, setPwError] = useState('')
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [actionError, setActionError] = useState('')
 
   async function loadUsers() {
     setUsersLoading(true)
@@ -57,19 +59,21 @@ export default function SettingsClient() {
 
   async function deleteUser(id: string, username: string) {
     if (!confirm(`¿Eliminar el usuario "${username}"?`)) return
+    setActionError('')
     const res = await fetch(`/api/users/${id}`, { method: 'DELETE' })
-    if (!res.ok) { const d = await res.json(); alert(d.error); return }
+    if (!res.ok) { const d = await res.json(); setActionError(d.error); return }
     loadUsers()
   }
 
   async function changePassword(id: string) {
-    if (newPw.length < 6) { alert('La contraseña debe tener al menos 6 caracteres'); return }
+    if (newPw.length < 6) { setPwError('La contraseña debe tener al menos 6 caracteres'); return }
+    setPwError('')
     const res = await fetch(`/api/users/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: newPw }),
     })
-    if (!res.ok) { const d = await res.json(); alert(d.error); return }
+    if (!res.ok) { const d = await res.json(); setPwError(d.error); return }
     setChangePwId(null); setNewPw('')
   }
 
@@ -120,6 +124,14 @@ export default function SettingsClient() {
             </div>
           )}
 
+          {actionError && (
+            <div className="flex items-center justify-between gap-3 text-sm px-4 py-2.5 rounded-lg mb-3"
+              style={{ background: 'var(--negative-soft)', color: 'var(--negative)' }}>
+              <span>{actionError}</span>
+              <button onClick={() => setActionError('')} className="flex-shrink-0"><X size={14} /></button>
+            </div>
+          )}
+
           <div className="card overflow-hidden">
             {usersLoading && <div className="py-8 text-center text-sm" style={{ color: 'var(--muted)' }}>Cargando...</div>}
             <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
@@ -141,7 +153,7 @@ export default function SettingsClient() {
                       </div>
                     </div>
                     <button
-                      onClick={() => { setChangePwId(changePwId === u.id ? null : u.id); setNewPw('') }}
+                      onClick={() => { setChangePwId(changePwId === u.id ? null : u.id); setNewPw(''); setPwError('') }}
                       className="p-1.5 rounded hover:bg-white/10 transition-colors"
                       style={{ color: 'var(--muted)' }}
                       title="Cambiar contraseña">
@@ -156,20 +168,23 @@ export default function SettingsClient() {
                     )}
                   </div>
                   {changePwId === u.id && (
-                    <div className="px-4 pb-3 flex gap-2" style={{ borderTop: '1px solid var(--card-border)', paddingTop: '0.75rem' }}>
-                      <input type="password" placeholder="Nueva contraseña" value={newPw}
-                        onChange={(e) => setNewPw(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && changePassword(u.id)}
-                        autoFocus className="flex-1 px-3 py-1.5 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
-                      <button onClick={() => changePassword(u.id)}
-                        className="flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg"
-                        style={{ background: 'var(--accent)', color: '#fff' }}>
-                        <Check size={14} /> Guardar
-                      </button>
-                      <button onClick={() => { setChangePwId(null); setNewPw('') }}
-                        className="p-1.5 rounded hover:bg-white/10" style={{ color: 'var(--muted)' }}>
-                        <X size={14} />
-                      </button>
+                    <div className="px-4 pb-3" style={{ borderTop: '1px solid var(--card-border)', paddingTop: '0.75rem' }}>
+                      <div className="flex gap-2">
+                        <input type="password" placeholder="Nueva contraseña" value={newPw}
+                          onChange={(e) => { setNewPw(e.target.value); setPwError('') }}
+                          onKeyDown={(e) => e.key === 'Enter' && changePassword(u.id)}
+                          autoFocus className="flex-1 px-3 py-1.5 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
+                        <button onClick={() => changePassword(u.id)}
+                          className="flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg"
+                          style={{ background: 'var(--accent)', color: '#fff' }}>
+                          <Check size={14} /> Guardar
+                        </button>
+                        <button onClick={() => { setChangePwId(null); setNewPw(''); setPwError('') }}
+                          className="p-1.5 rounded hover:bg-white/10" style={{ color: 'var(--muted)' }}>
+                          <X size={14} />
+                        </button>
+                      </div>
+                      {pwError && <p className="text-xs mt-1.5" style={{ color: 'var(--negative)' }}>{pwError}</p>}
                     </div>
                   )}
                 </div>

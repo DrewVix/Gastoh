@@ -48,6 +48,12 @@ export default function TransactionsClient() {
   const [filterCategory, setFilterCategory] = useState('')
   const [filterMonth, setFilterMonth] = useState('')
   const [filterMerchant, setFilterMerchant] = useState('')
+  const [filterType, setFilterType] = useState<'' | 'gasto' | 'ingreso' | 'transferencia'>('')
+  const [filterMinAmount, setFilterMinAmount] = useState('')
+  const [filterMaxAmount, setFilterMaxAmount] = useState('')
+  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  const [showMoreFilters, setShowMoreFilters] = useState(false)
   const [merchantSearch, setMerchantSearch] = useState('')
   const [merchantDropdown, setMerchantDropdown] = useState(false)
   const [merchantTotal, setMerchantTotal] = useState<number | null>(null)
@@ -75,6 +81,7 @@ export default function TransactionsClient() {
   const [newMerchant, setNewMerchant] = useState('')
   const [newCategory, setNewCategory] = useState('')
   const [newNotes, setNewNotes] = useState('')
+  const [newIsTransfer, setNewIsTransfer] = useState(false)
   const [newSaving, setNewSaving] = useState(false)
 
   const limit = 50
@@ -88,7 +95,11 @@ export default function TransactionsClient() {
       ...(filterCategory && { category: filterCategory }),
       ...(filterMonth && { month: filterMonth }),
       ...(filterMerchant && { merchant: filterMerchant }),
-      excludeTransfers: '1',
+      ...(filterType && { type: filterType }),
+      ...(filterMinAmount && { minAmount: filterMinAmount }),
+      ...(filterMaxAmount && { maxAmount: filterMaxAmount }),
+      sortBy,
+      sortDir,
     })
     const res = await fetch(`/api/transactions?${params}`)
     const data = await res.json()
@@ -96,7 +107,7 @@ export default function TransactionsClient() {
     setTotal(data.total ?? 0)
     setMerchantTotal(data.merchantTotal ?? null)
     setLoading(false)
-  }, [page, q, filterCategory, filterMonth, filterMerchant])
+  }, [page, q, filterCategory, filterMonth, filterMerchant, filterType, filterMinAmount, filterMaxAmount, sortBy, sortDir])
 
   useEffect(() => { load() }, [load])
   useEffect(() => {
@@ -150,6 +161,7 @@ export default function TransactionsClient() {
     setNewMerchant('')
     setNewCategory('')
     setNewNotes('')
+    setNewIsTransfer(false)
     setShowNewModal(true)
   }
 
@@ -162,6 +174,7 @@ export default function TransactionsClient() {
     setNewMerchant(tx.merchantName ?? '')
     setNewCategory(tx.category?.id ?? '')
     setNewNotes(tx.notes ?? '')
+    setNewIsTransfer(tx.isTransfer)
     setShowNewModal(true)
   }
 
@@ -177,6 +190,7 @@ export default function TransactionsClient() {
       merchantName: newType === 'gasto' ? (newMerchant.trim() || null) : null,
       categoryId: newCategory || null,
       notes: newNotes.trim() || null,
+      isTransfer: newIsTransfer,
     }
     await fetch(editTxId ? `/api/transactions/${editTxId}` : '/api/transactions', {
       method: editTxId ? 'PATCH' : 'POST',
@@ -198,7 +212,8 @@ export default function TransactionsClient() {
   const SEL = { background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }
 
   // Count active filters for badge
-  const activeFilterCount = [q, filterCategory, filterMonth, filterMerchant].filter(Boolean).length
+  const activeFilterCount = [q, filterCategory, filterMonth, filterMerchant, filterType, filterMinAmount, filterMaxAmount].filter(Boolean).length
+    + (sortBy !== 'date' || sortDir !== 'desc' ? 1 : 0)
 
   return (
     <div className="space-y-3">
@@ -223,6 +238,14 @@ export default function TransactionsClient() {
             const val = format(d, 'yyyy-MM')
             return <option key={val} value={val}>{format(d, 'MMMM yyyy')}</option>
           })}
+        </select>
+
+        <select value={filterType} onChange={(e) => { setFilterType(e.target.value as typeof filterType); setPage(1) }}
+          className="text-sm px-3 py-1.5 rounded-lg outline-none" style={SEL}>
+          <option value="">Gastos e ingresos</option>
+          <option value="gasto">Solo gastos</option>
+          <option value="ingreso">Solo ingresos</option>
+          <option value="transferencia">Solo transferencias</option>
         </select>
 
         <select value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPage(1) }}
@@ -302,6 +325,18 @@ export default function TransactionsClient() {
           )}
         </div>
 
+        <button
+          onClick={() => setShowMoreFilters(v => !v)}
+          className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg relative transition-colors"
+          style={{
+            background: (filterMinAmount || filterMaxAmount || sortBy !== 'date' || sortDir !== 'desc') ? 'rgba(0,217,118,.15)' : 'var(--card)',
+            border: `1px solid ${(filterMinAmount || filterMaxAmount || sortBy !== 'date' || sortDir !== 'desc') ? 'rgba(0,217,118,.4)' : 'var(--card-border)'}`,
+            color: (filterMinAmount || filterMaxAmount || sortBy !== 'date' || sortDir !== 'desc') ? 'var(--accent)' : 'var(--muted)',
+          }}>
+          <SlidersHorizontal size={14} />
+          Más filtros
+        </button>
+
         <div className="flex-1" />
 
         <button
@@ -312,6 +347,38 @@ export default function TransactionsClient() {
           Nueva
         </button>
       </div>
+
+      {/* Desktop: more filters (amount range + sort) */}
+      {showMoreFilters && (
+        <div className="hidden md:flex items-center gap-2 card p-3">
+          <span className="text-xs" style={{ color: 'var(--muted)' }}>Importe</span>
+          <input type="number" min="0" step="0.01" placeholder="Mín €" value={filterMinAmount}
+            onChange={(e) => { setFilterMinAmount(e.target.value); setPage(1) }}
+            className="w-24 text-sm px-2.5 py-1.5 rounded-lg outline-none" style={SEL} />
+          <span className="text-xs" style={{ color: 'var(--muted)' }}>–</span>
+          <input type="number" min="0" step="0.01" placeholder="Máx €" value={filterMaxAmount}
+            onChange={(e) => { setFilterMaxAmount(e.target.value); setPage(1) }}
+            className="w-24 text-sm px-2.5 py-1.5 rounded-lg outline-none" style={SEL} />
+
+          <span className="text-xs ml-3" style={{ color: 'var(--muted)' }}>Ordenar por</span>
+          <select value={`${sortBy}-${sortDir}`}
+            onChange={(e) => { const [b, d] = e.target.value.split('-'); setSortBy(b as 'date' | 'amount'); setSortDir(d as 'asc' | 'desc') }}
+            className="text-sm px-3 py-1.5 rounded-lg outline-none" style={SEL}>
+            <option value="date-desc">Fecha (recientes primero)</option>
+            <option value="date-asc">Fecha (antiguas primero)</option>
+            <option value="amount-desc">Importe (mayor primero)</option>
+            <option value="amount-asc">Importe (menor primero)</option>
+          </select>
+
+          {(filterMinAmount || filterMaxAmount || sortBy !== 'date' || sortDir !== 'desc') && (
+            <button
+              onClick={() => { setFilterMinAmount(''); setFilterMaxAmount(''); setSortBy('date'); setSortDir('desc') }}
+              className="text-xs px-2 py-1 rounded hover:bg-white/10 transition-colors ml-1" style={{ color: 'var(--muted)' }}>
+              Restablecer
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Mobile toolbar */}
       <div className="flex md:hidden items-center gap-2">
@@ -355,6 +422,14 @@ export default function TransactionsClient() {
               const val = format(d, 'yyyy-MM')
               return <option key={val} value={val}>{format(d, 'MMMM yyyy')}</option>
             })}
+          </select>
+
+          <select value={filterType} onChange={(e) => { setFilterType(e.target.value as typeof filterType); setPage(1) }}
+            className="w-full text-sm px-3 py-2.5 rounded-lg outline-none" style={SEL}>
+            <option value="">Gastos e ingresos</option>
+            <option value="gasto">Solo gastos</option>
+            <option value="ingreso">Solo ingresos</option>
+            <option value="transferencia">Solo transferencias</option>
           </select>
 
           <select value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPage(1) }}
@@ -432,9 +507,31 @@ export default function TransactionsClient() {
             </div>
           )}
 
+          <div className="flex items-center gap-2">
+            <input type="number" min="0" step="0.01" placeholder="Importe mín €" value={filterMinAmount}
+              onChange={(e) => { setFilterMinAmount(e.target.value); setPage(1) }}
+              className="flex-1 text-sm px-3 py-2.5 rounded-lg outline-none min-w-0" style={SEL} />
+            <input type="number" min="0" step="0.01" placeholder="Importe máx €" value={filterMaxAmount}
+              onChange={(e) => { setFilterMaxAmount(e.target.value); setPage(1) }}
+              className="flex-1 text-sm px-3 py-2.5 rounded-lg outline-none min-w-0" style={SEL} />
+          </div>
+
+          <select value={`${sortBy}-${sortDir}`}
+            onChange={(e) => { const [b, d] = e.target.value.split('-'); setSortBy(b as 'date' | 'amount'); setSortDir(d as 'asc' | 'desc') }}
+            className="w-full text-sm px-3 py-2.5 rounded-lg outline-none" style={SEL}>
+            <option value="date-desc">Fecha (recientes primero)</option>
+            <option value="date-asc">Fecha (antiguas primero)</option>
+            <option value="amount-desc">Importe (mayor primero)</option>
+            <option value="amount-asc">Importe (menor primero)</option>
+          </select>
+
           {activeFilterCount > 0 && (
             <button
-              onClick={() => { setQ(''); setFilterCategory(''); setFilterMonth(''); setFilterMerchant(''); setMerchantSearch(''); setPage(1) }}
+              onClick={() => {
+                setQ(''); setFilterCategory(''); setFilterMonth(''); setFilterMerchant(''); setMerchantSearch('')
+                setFilterType(''); setFilterMinAmount(''); setFilterMaxAmount(''); setSortBy('date'); setSortDir('desc')
+                setPage(1)
+              }}
               className="w-full text-sm py-2 rounded-lg"
               style={{ border: '1px solid var(--card-border)', color: 'var(--muted)' }}>
               Limpiar filtros
@@ -802,6 +899,13 @@ export default function TransactionsClient() {
                   className="w-full text-sm px-3 py-2.5 rounded-lg outline-none"
                   style={INPUT_STYLE} />
               </div>
+
+              {/* Transfer */}
+              <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'var(--muted)' }}>
+                <input type="checkbox" checked={newIsTransfer} onChange={e => setNewIsTransfer(e.target.checked)}
+                  className="accent-current" style={{ accentColor: 'var(--accent)' }} />
+                Es una transferencia entre cuentas (no cuenta como gasto ni ingreso real)
+              </label>
 
               {/* Actions */}
               <div className="flex gap-2 pt-1">

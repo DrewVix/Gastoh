@@ -102,6 +102,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'date, amount y description son requeridos' }, { status: 400 })
   }
 
+  if (categoryId) {
+    const category = await prisma.category.findFirst({ where: { id: categoryId, userId }, select: { _count: { select: { children: true } } } })
+    if (category && category._count.children > 0) {
+      return NextResponse.json({ error: 'Elige una subcategoría, no se puede asignar una categoría con subcategorías' }, { status: 400 })
+    }
+  }
+
   const tx = await prisma.transaction.create({
     data: {
       userId,

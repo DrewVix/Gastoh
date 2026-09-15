@@ -14,6 +14,13 @@ export async function PATCH(
   const body = await req.json()
   const { date, amount, description, categoryId, notes, isTransfer } = body
 
+  if (categoryId) {
+    const category = await prisma.category.findFirst({ where: { id: categoryId, userId }, select: { _count: { select: { children: true } } } })
+    if (category && category._count.children > 0) {
+      return NextResponse.json({ error: 'Elige una subcategoría, no se puede asignar una categoría con subcategorías' }, { status: 400 })
+    }
+  }
+
   const updated = await prisma.transaction.update({
     where: { id, userId },
     data: {

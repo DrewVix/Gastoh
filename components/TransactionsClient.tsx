@@ -12,10 +12,43 @@ interface Category {
   parentId: string | null
   isFixed: boolean
   parent: { id: string; name: string; color: string | null; icon: string | null } | null
+  children: { id: string }[]
 }
 
 function isFixedExpense(category: Category | null): boolean {
   return !!category?.isFixed
+}
+
+// Solo categorías "hoja" (subcategorías o categorías sin grupo) son asignables:
+// los grupos con subcategorías no se pueden usar directamente en una transacción.
+function buildCategoryOptions(categories: Category[]) {
+  const groups = new Map<string, { label: string; items: Category[] }>()
+  const standalone: Category[] = []
+  for (const c of categories) {
+    if (c.children.length > 0) continue
+    if (c.parentId && c.parent) {
+      const g = groups.get(c.parentId) ?? { label: c.parent.name, items: [] }
+      g.items.push(c)
+      groups.set(c.parentId, g)
+    } else {
+      standalone.push(c)
+    }
+  }
+  return { groups: Array.from(groups.values()), standalone }
+}
+
+function CategoryOptions({ categories }: { categories: Category[] }) {
+  const { groups, standalone } = buildCategoryOptions(categories)
+  return (
+    <>
+      {groups.map(g => (
+        <optgroup key={g.label} label={g.label}>
+          {g.items.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </optgroup>
+      ))}
+      {standalone.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+    </>
+  )
 }
 interface Transaction {
   id: string
@@ -219,29 +252,7 @@ export default function TransactionsClient() {
           className="text-sm px-3 py-1.5 rounded-lg outline-none" style={SEL}>
           <option value="">Todas las categorías</option>
           <option value="none">Sin categoría</option>
-          {(() => {
-            const groups = new Map<string, { label: string; items: Category[] }>()
-            const ungrouped: Category[] = []
-            for (const c of categories) {
-              if (c.parentId && c.parent) {
-                const g = groups.get(c.parentId) ?? { label: c.parent.name, items: [] }
-                g.items.push(c)
-                groups.set(c.parentId, g)
-              } else if (!categories.some(p => p.id === c.parentId)) {
-                ungrouped.push(c)
-              }
-            }
-            return (
-              <>
-                {Array.from(groups.values()).map(g => (
-                  <optgroup key={g.label} label={g.label}>
-                    {g.items.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </optgroup>
-                ))}
-                {ungrouped.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </>
-            )
-          })()}
+          <CategoryOptions categories={categories} />
         </select>
 
         <button
@@ -363,29 +374,7 @@ export default function TransactionsClient() {
             className="w-full text-sm px-3 py-2.5 rounded-lg outline-none" style={SEL}>
             <option value="">Todas las categorías</option>
             <option value="none">Sin categoría</option>
-            {(() => {
-              const groups = new Map<string, { label: string; items: Category[] }>()
-              const ungrouped: Category[] = []
-              for (const c of categories) {
-                if (c.parentId && c.parent) {
-                  const g = groups.get(c.parentId) ?? { label: c.parent.name, items: [] }
-                  g.items.push(c)
-                  groups.set(c.parentId, g)
-                } else if (!categories.some(p => p.id === c.parentId)) {
-                  ungrouped.push(c)
-                }
-              }
-              return (
-                <>
-                  {Array.from(groups.values()).map(g => (
-                    <optgroup key={g.label} label={g.label}>
-                      {g.items.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </optgroup>
-                  ))}
-                  {ungrouped.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </>
-              )
-            })()}
+            <CategoryOptions categories={categories} />
           </select>
 
           <select value={filterFixed} onChange={(e) => { setFilterFixed(e.target.value as typeof filterFixed); setPage(1) }}
@@ -507,7 +496,7 @@ export default function TransactionsClient() {
                       className="text-xs px-2 py-1 rounded outline-none w-full"
                       style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}>
                       <option value="">Sin categoría</option>
-                      {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      <CategoryOptions categories={categories} />
                     </select>
                   ) : (
                     <button onClick={() => setEditingId(tx.id)}
@@ -581,7 +570,7 @@ export default function TransactionsClient() {
                   className="text-xs px-2 py-1 rounded outline-none flex-1"
                   style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}>
                   <option value="">Sin categoría</option>
-                  {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  <CategoryOptions categories={categories} />
                 </select>
               ) : (
                 <button onClick={() => setEditingId(tx.id)}
@@ -720,7 +709,7 @@ export default function TransactionsClient() {
                   className="w-full text-sm px-3 py-2.5 rounded-lg outline-none"
                   style={INPUT_STYLE}>
                   <option value="">Sin categoría</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.parent ? `${c.parent.name} › ` : ''}{c.name}</option>)}
+                  <CategoryOptions categories={categories} />
                 </select>
               </div>
 

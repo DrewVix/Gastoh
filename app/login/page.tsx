@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Logo from '@/components/Logo'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -36,7 +37,10 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="card w-full max-w-sm p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold tracking-tight">Gastoh</h1>
+          <div className="flex items-center justify-center gap-2" style={{ color: 'var(--accent)' }}>
+            <Logo size={24} />
+            <h1 className="text-2xl font-bold tracking-tight">Gastoh</h1>
+          </div>
           <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>Control de gastos</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">

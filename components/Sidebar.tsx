@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { LayoutDashboard, List, CalendarDays, Tag, Settings, LogOut, FileBarChart2 } from 'lucide-react'
+import Logo from './Logo'
 
 const nav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -48,7 +49,10 @@ export default function Sidebar() {
       >
         {/* Logo */}
         <div className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid var(--card-border)' }}>
-          <div className="font-display text-xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>Gastoh</div>
+          <div className="flex items-center gap-2" style={{ color: 'var(--accent)' }}>
+            <Logo size={20} />
+            <span className="font-display text-xl font-semibold tracking-tight">Gastoh</span>
+          </div>
           <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>Control de gastos</div>
         </div>
 

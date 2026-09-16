@@ -8,7 +8,7 @@ import {
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, ChevronDown, ChevronRight, RefreshCw } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, ChevronDown, ChevronRight, RefreshCw, Target } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import Skeleton from './Skeleton'
@@ -310,7 +310,7 @@ export default function DashboardClient() {
             </div>
 
             <div className="px-4 md:px-6 py-4 md:py-5" style={{ borderLeft: '1px solid var(--card-border)' }}>
-              <div className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Flujo neto</div>
+              <div className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Ahorro real</div>
               <div className="font-display text-2xl md:text-3xl font-semibold tabular-nums" style={{ color: s!.netFlow >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
                 {eur(s!.netFlow)}
               </div>
@@ -333,7 +333,8 @@ export default function DashboardClient() {
               style={{ borderColor: 'var(--card-border)' }}>
               {data.projection ? (
                 <>
-                  <div className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
+                  <div className="text-xs mb-1 flex items-center gap-1" style={{ color: 'var(--muted)' }}>
+                    <Target size={11} />
                     {preset === 'year' ? 'Proyección fin de año' : 'Proyección fin de mes'}
                   </div>
                   <div className="font-display text-2xl md:text-3xl font-semibold tabular-nums">{eur(data.projection.projected)}</div>
@@ -348,7 +349,10 @@ export default function DashboardClient() {
                 </>
               ) : (
                 <>
-                  <div className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Media diaria</div>
+                  <div className="text-xs mb-1 flex items-center gap-1" style={{ color: 'var(--muted)' }}>
+                    <Target size={11} />
+                    Media diaria
+                  </div>
                   <div className="font-display text-2xl md:text-3xl font-semibold tabular-nums">{eur(s!.avgPerDay)}<span className="text-base font-normal">/día</span></div>
                 </>
               )}
@@ -361,7 +365,7 @@ export default function DashboardClient() {
               )}
             </div>
 
-            <div className="px-4 md:px-6 py-4 md:py-5 border-t md:border-t-0 border-l"
+            <a href="#recurring-panel" className="block px-4 md:px-6 py-4 md:py-5 border-t md:border-t-0 border-l transition-colors hover:bg-white/[0.02]"
               style={{ borderColor: 'var(--card-border)' }}>
               <div className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
                 Gastos recurrentes detectados
@@ -370,7 +374,7 @@ export default function DashboardClient() {
               <div className="text-xs mt-2" style={{ color: 'var(--muted)' }}>
                 {data.recurring.length} pagos recurrentes identificados
               </div>
-            </div>
+            </a>
           </div>
 
           {/* ── Main grid: categorías (izq) + paneles (der) ── */}
@@ -390,11 +394,10 @@ export default function DashboardClient() {
 
                 {showMonthCols && (
                   <div className="px-5 py-2 grid text-xs font-semibold"
-                    style={{ color: 'var(--muted)', borderBottom: '1px solid var(--card-border)', gridTemplateColumns: '1fr 100px 100px 100px 70px 50px 28px' }}>
+                    style={{ color: 'var(--muted)', borderBottom: '1px solid var(--card-border)', gridTemplateColumns: '1fr 100px 100px 70px 50px 28px' }}>
                     <span>Categoría</span>
                     <span className="text-right">Periodo</span>
                     <span className="text-right">{prevLabel}</span>
-                    <span className="text-right">Diferencia</span>
                     <span className="text-right">% cambio</span>
                     <span className="text-right">% total</span>
                     <span />
@@ -459,7 +462,7 @@ export default function DashboardClient() {
                         >
                           {showMonthCols && (
                             <div className="grid items-center gap-2" aria-hidden="true"
-                              style={{ gridTemplateColumns: '1fr 100px 100px 100px 70px 50px 28px' }}>
+                              style={{ gridTemplateColumns: '1fr 100px 100px 70px 50px 28px' }}>
                               <div className="flex items-center gap-2 min-w-0">
                                 <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0 flex items-center justify-center"
                                   style={{ color: group.color }}>
@@ -468,7 +471,6 @@ export default function DashboardClient() {
                                 <span className="text-sm font-semibold truncate" title={group.name}>{group.name}</span>
                               </div>
                               <span className="text-sm font-bold tabular-nums text-right">{eur(group.total)}</span>
-                              <span className="text-sm tabular-nums text-right" style={{ color: 'var(--muted)' }}>—</span>
                               <span className="text-sm tabular-nums text-right" style={{ color: 'var(--muted)' }}>—</span>
                               <span className="text-xs tabular-nums text-right" style={{ color: 'var(--muted)' }}>—</span>
                               <span className="text-xs tabular-nums text-right" style={{ color: 'var(--muted)' }}>{group.pct.toFixed(1)}%</span>
@@ -552,7 +554,6 @@ export default function DashboardClient() {
                             {group.subcategories.map((cat) => {
                               const key = cat.id ?? '__none'
                               const catExpanded = expandedCatId === key
-                              const diff = cat.prevTotal != null ? cat.total - cat.prevTotal : null
                               const diffPct = cat.prevTotal != null && cat.prevTotal > 0
                                 ? ((cat.total - cat.prevTotal) / cat.prevTotal) * 100 : null
 
@@ -574,7 +575,7 @@ export default function DashboardClient() {
                                   >
                                     {showMonthCols && (
                                       <div className="grid items-center gap-2" aria-hidden="true"
-                                        style={{ gridTemplateColumns: '1fr 100px 100px 100px 70px 50px 28px' }}>
+                                        style={{ gridTemplateColumns: '1fr 100px 100px 70px 50px 28px' }}>
                                         <div className="flex items-center gap-2 min-w-0">
                                           <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: cat.color }} />
                                           <span className="text-xs truncate" style={{ color: 'var(--muted)' }} title={cat.name}>{cat.name}</span>
@@ -586,10 +587,6 @@ export default function DashboardClient() {
                                         <span className="text-xs font-semibold tabular-nums text-right">{eur(cat.total)}</span>
                                         <span className="text-xs tabular-nums text-right" style={{ color: 'var(--muted)' }}>
                                           {cat.prevTotal != null ? eur(cat.prevTotal) : '—'}
-                                        </span>
-                                        <span className="text-xs tabular-nums text-right font-medium"
-                                          style={{ color: diff == null ? 'var(--muted)' : diff > 0 ? 'var(--negative)' : 'var(--positive)' }}>
-                                          {diff != null ? `${sign(diff)}${eur(Math.abs(diff))}` : '—'}
                                         </span>
                                         <span className="text-xs tabular-nums text-right"
                                           style={{ color: diffPct == null ? 'var(--muted)' : diffPct > 0 ? 'var(--negative)' : 'var(--positive)' }}>
@@ -866,7 +863,7 @@ export default function DashboardClient() {
 
               {/* Gastos recurrentes */}
               {data.recurring.length > 0 && (
-                <div className="card overflow-hidden">
+                <div id="recurring-panel" className="card overflow-hidden" style={{ scrollMarginTop: '1rem' }}>
                   <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--card-border)' }}>
                     <div className="flex items-center gap-2">
                       <RefreshCw size={13} style={{ color: 'var(--accent)' }} />

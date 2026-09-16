@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Pencil, Trash2, Plus, X, Check, ChevronDown, ChevronRight, FolderPlus } from 'lucide-react'
 import Skeleton from './Skeleton'
+import ConfirmDialog from './ConfirmDialog'
 
 interface Category {
   id: string
@@ -64,9 +65,16 @@ export default function CategoriesClient() {
     load()
   }
 
-  async function deleteCategory(id: string, name: string) {
-    if (!confirm(`¿Eliminar "${name}"? Las transacciones quedarán sin categoría.`)) return
-    await fetch(`/api/categories/${id}`, { method: 'DELETE' })
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+
+  function deleteCategory(id: string, name: string) {
+    setDeleteTarget({ id, name })
+  }
+
+  async function confirmDeleteCategory() {
+    if (!deleteTarget) return
+    await fetch(`/api/categories/${deleteTarget.id}`, { method: 'DELETE' })
+    setDeleteTarget(null)
     load()
   }
 
@@ -131,7 +139,7 @@ export default function CategoriesClient() {
           />
           <div className="flex gap-1 flex-wrap">
             {COLORS.map((c) => (
-              <button key={c} onClick={() => setNewColor(c)} className="w-5 h-5 rounded-full border-2 transition-all"
+              <button key={c} onClick={() => setNewColor(c)} className="w-5 h-5 rounded-full border-2 transition-[border-color]"
                 style={{ background: c, borderColor: newColor === c ? '#fff' : 'transparent' }} />
             ))}
           </div>
@@ -175,7 +183,7 @@ export default function CategoriesClient() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h1 className="text-2xl font-bold">Categorías</h1>
+        <h1 className="text-xl font-semibold">Categorías</h1>
         <div className="flex gap-2 flex-shrink-0">
           <button onClick={() => openCreate('group')} className="flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg"
             style={{ border: '1px solid var(--card-border)', color: 'var(--muted)' }}>
@@ -235,16 +243,20 @@ export default function CategoriesClient() {
                         </span>
                         <FixedToggle cat={group} />
                         <button onClick={(e) => { e.stopPropagation(); startEdit(group) }}
-                          className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}>
+                          className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
+                          aria-label={`Editar grupo ${group.name}`}>
                           <Pencil size={13} />
                         </button>
                         {!group.isDefault && (
                           <button onClick={(e) => { e.stopPropagation(); deleteCategory(group.id, group.name) }}
-                            className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400">
+                            className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400"
+                            aria-label={`Eliminar grupo ${group.name}`}>
                             <Trash2 size={13} />
                           </button>
                         )}
-                        {expanded ? <ChevronDown size={13} style={{ color: 'var(--muted)' }} /> : <ChevronRight size={13} style={{ color: 'var(--muted)' }} />}
+                        <span aria-hidden="true">
+                          {expanded ? <ChevronDown size={13} style={{ color: 'var(--muted)' }} /> : <ChevronRight size={13} style={{ color: 'var(--muted)' }} />}
+                        </span>
                       </div>
                     </>
                   )}
@@ -276,12 +288,14 @@ export default function CategoriesClient() {
                                 )}
                                 <FixedToggle cat={cat} />
                                 <button onClick={() => startEdit(cat)}
-                                  className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}>
+                                  className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
+                                  aria-label={`Editar categoría ${cat.name}`}>
                                   <Pencil size={12} />
                                 </button>
                                 {!cat.isDefault && (
                                   <button onClick={() => deleteCategory(cat.id, cat.name)}
-                                    className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400">
+                                    className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400"
+                                    aria-label={`Eliminar categoría ${cat.name}`}>
                                     <Trash2 size={12} />
                                   </button>
                                 )}
@@ -342,14 +356,17 @@ export default function CategoriesClient() {
                               <FixedToggle cat={cat} />
                               <button onClick={() => openCreate({ parentId: cat.id })}
                                 className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
+                                aria-label={`Añadir subcategoría a ${cat.name} (la convierte en un grupo)`}
                                 title="Añadir subcategoría (convierte esta categoría en un grupo)">
                                 <FolderPlus size={13} />
                               </button>
-                              <button onClick={() => startEdit(cat)} className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}>
+                              <button onClick={() => startEdit(cat)} className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
+                                aria-label={`Editar categoría ${cat.name}`}>
                                 <Pencil size={13} />
                               </button>
                               {!cat.isDefault && (
-                                <button onClick={() => deleteCategory(cat.id, cat.name)} className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400">
+                                <button onClick={() => deleteCategory(cat.id, cat.name)} className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400"
+                                  aria-label={`Eliminar categoría ${cat.name}`}>
                                   <Trash2 size={13} />
                                 </button>
                               )}
@@ -370,6 +387,14 @@ export default function CategoriesClient() {
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Eliminar categoría"
+        message={`¿Eliminar "${deleteTarget?.name}"? Las transacciones quedarán sin categoría.`}
+        onConfirm={confirmDeleteCategory}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }

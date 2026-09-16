@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { format } from 'date-fns'
 import { Search, ChevronLeft, ChevronRight, Pencil, Check, X, Plus, SlidersHorizontal, Trash2 } from 'lucide-react'
 import Skeleton from './Skeleton'
+import ConfirmDialog from './ConfirmDialog'
 
 interface Category {
   id: string
@@ -204,9 +205,16 @@ export default function TransactionsClient() {
     load()
   }
 
-  async function deleteTransaction(id: string, description: string) {
-    if (!confirm(`¿Eliminar "${description}"? Esta acción no se puede deshacer.`)) return
-    await fetch(`/api/transactions/${id}`, { method: 'DELETE' })
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; description: string } | null>(null)
+
+  function deleteTransaction(id: string, description: string) {
+    setDeleteTarget({ id, description })
+  }
+
+  async function confirmDeleteTransaction() {
+    if (!deleteTarget) return
+    await fetch(`/api/transactions/${deleteTarget.id}`, { method: 'DELETE' })
+    setDeleteTarget(null)
     load()
   }
 
@@ -419,18 +427,18 @@ export default function TransactionsClient() {
       )}
 
       {/* ── Desktop Table ── */}
-      <div className="hidden md:block card overflow-hidden">
-        <div className="px-5 py-2.5 border-b text-xs font-semibold grid"
+      <div className="hidden md:block card overflow-hidden" role="table" aria-label="Transacciones">
+        <div className="px-5 py-2.5 border-b text-xs font-semibold grid" role="row"
           style={{ borderColor: 'var(--card-border)', color: 'var(--muted)', gridTemplateColumns: '88px 1fr 110px 200px 64px' }}>
-          <span>FECHA</span>
-          <span>DESCRIPCIÓN</span>
-          <span className="text-right">IMPORTE</span>
-          <span className="text-center">CATEGORÍA</span>
-          <span />
+          <span role="columnheader">FECHA</span>
+          <span role="columnheader">DESCRIPCIÓN</span>
+          <span role="columnheader" className="text-right">IMPORTE</span>
+          <span role="columnheader" className="text-center">CATEGORÍA</span>
+          <span role="columnheader" aria-label="Acciones" />
         </div>
 
         {loading && (
-          <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+          <div className="divide-y" style={{ borderColor: 'var(--card-border)' }} aria-hidden="true">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="px-5 py-3 grid items-center gap-2" style={{ gridTemplateColumns: '88px 1fr 110px 200px 64px' }}>
                 <Skeleton className="h-4 w-12" />
@@ -446,19 +454,19 @@ export default function TransactionsClient() {
           <div className="py-12 text-center" style={{ color: 'var(--muted)' }}>No hay transacciones con estos filtros</div>
         )}
 
-        <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+        <div className="divide-y" role="rowgroup" style={{ borderColor: 'var(--card-border)' }}>
           {!loading && transactions.map((tx) => (
             <div key={tx.id}>
               {/* Main row */}
-              <div className="px-5 py-3 grid items-center gap-2 hover:bg-white/[0.025] transition-colors group/row"
+              <div className="px-5 py-3 grid items-center gap-2 hover:bg-white/[0.025] transition-colors group/row" role="row"
                 style={{ gridTemplateColumns: '88px 1fr 110px 200px 64px' }}>
-                <div>
+                <div role="cell">
                   <div className="text-xs font-medium tabular-nums">{format(new Date(tx.date), 'dd MMM')}</div>
                   <div className="text-xs" style={{ color: 'var(--muted)' }}>{format(new Date(tx.date), 'yyyy')}</div>
                 </div>
 
                 {/* Description + notes */}
-                <div className="min-w-0">
+                <div className="min-w-0" role="cell">
                   <div className="text-sm truncate">{tx.description}</div>
 
                   {/* Notes: editable */}
@@ -496,12 +504,12 @@ export default function TransactionsClient() {
                   )}
                 </div>
 
-                <span className="text-sm font-medium text-right tabular-nums"
+                <span className="text-sm font-medium text-right tabular-nums" role="cell"
                   style={{ color: tx.isTransfer ? 'var(--muted)' : tx.amount < 0 ? 'var(--negative)' : 'var(--positive)' }}>
                   {fmt(tx.amount)}
                 </span>
 
-                <div className="text-center">
+                <div className="text-center" role="cell">
                   {editingId === tx.id ? (
                     <select autoFocus defaultValue={tx.category?.id ?? ''}
                       onBlur={(e) => updateCategory(tx.id, e.target.value)}
@@ -526,21 +534,21 @@ export default function TransactionsClient() {
                     </button>
                   )}
                   {!tx.isTransfer && tx.amount < 0 && (
-                    <div className="text-[10px] mt-1" style={{ color: isFixedExpense(tx.category) ? 'var(--accent)' : 'var(--muted)' }}>
+                    <div className="text-xs mt-1" style={{ color: isFixedExpense(tx.category) ? 'var(--accent)' : 'var(--muted)' }}>
                       {isFixedExpense(tx.category) ? 'Fijo' : 'Variable'}
                     </div>
                   )}
                 </div>
 
-                <div className="flex items-center justify-end gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                <div className="flex items-center justify-end gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity" role="cell">
                   <button onClick={() => openEditModal(tx)}
                     className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
-                    title="Editar transacción">
+                    aria-label={`Editar transacción ${tx.description}`} title="Editar transacción">
                     <Pencil size={13} />
                   </button>
                   <button onClick={() => deleteTransaction(tx.id, tx.description)}
                     className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400"
-                    title="Eliminar transacción">
+                    aria-label={`Eliminar transacción ${tx.description}`} title="Eliminar transacción">
                     <Trash2 size={13} />
                   </button>
                 </div>
@@ -609,19 +617,19 @@ export default function TransactionsClient() {
                 </button>
               )}
               {!tx.isTransfer && tx.amount < 0 && (
-                <span className="text-[10px] flex-shrink-0" style={{ color: isFixedExpense(tx.category) ? 'var(--accent)' : 'var(--muted)' }}>
+                <span className="text-xs flex-shrink-0" style={{ color: isFixedExpense(tx.category) ? 'var(--accent)' : 'var(--muted)' }}>
                   {isFixedExpense(tx.category) ? 'Fijo' : 'Variable'}
                 </span>
               )}
               <div className="flex items-center gap-1 flex-shrink-0 ml-auto">
                 <button onClick={() => openEditModal(tx)}
                   className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
-                  title="Editar transacción">
+                  aria-label={`Editar transacción ${tx.description}`} title="Editar transacción">
                   <Pencil size={13} />
                 </button>
                 <button onClick={() => deleteTransaction(tx.id, tx.description)}
                   className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400"
-                  title="Eliminar transacción">
+                  aria-label={`Eliminar transacción ${tx.description}`} title="Eliminar transacción">
                   <Trash2 size={13} />
                 </button>
               </div>
@@ -654,10 +662,11 @@ export default function TransactionsClient() {
       {/* ── FAB: mobile only, fixed above bottom nav ── */}
       <button
         onClick={openNewModal}
-        className="md:hidden fixed right-4 z-40 flex items-center justify-center rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
+        className="md:hidden fixed right-4 z-40 flex items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
         style={{
           bottom: '76px',
           width: '52px',
+          boxShadow: '0 8px 24px -8px rgba(0,0,0,.6)',
           height: '52px',
           background: 'var(--accent)',
           color: '#fff',
@@ -768,6 +777,14 @@ export default function TransactionsClient() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Eliminar transacción"
+        message={`¿Eliminar "${deleteTarget?.description}"? Esta acción no se puede deshacer.`}
+        onConfirm={confirmDeleteTransaction}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }

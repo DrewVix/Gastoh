@@ -56,22 +56,17 @@ function KpiCard({
   label,
   value,
   sub,
-  accentColor,
 }: {
   label: string
   value: string
   sub?: string
-  accentColor: string
 }) {
   return (
-    <div
-      className="card p-4 flex flex-col gap-1"
-      style={{ borderLeft: `3px solid ${accentColor}` }}
-    >
-      <span className="text-xs uppercase tracking-wide" style={{ color: 'var(--muted)' }}>
+    <div className="card p-4 flex flex-col gap-1">
+      <span className="text-xs" style={{ color: 'var(--muted)' }}>
         {label}
       </span>
-      <span className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>
+      <span className="text-xl font-semibold" style={{ color: 'var(--foreground)' }}>
         {value}
       </span>
       {sub && (
@@ -133,7 +128,7 @@ function BreakdownPanel({
               </div>
               <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--card-border)' }}>
                 <div
-                  className="h-full rounded-full transition-all"
+                  className="h-full rounded-full transition-[width]"
                   style={{ width: `${Math.min(100, row.pct)}%`, background: row.color }}
                 />
               </div>
@@ -217,7 +212,7 @@ export default function ReportClient() {
     <div className="space-y-6 pb-24 md:pb-6">
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">Informe Mensual</h1>
+        <h1 className="text-xl font-semibold">Informe Mensual</h1>
       </div>
 
       {/* Month navigation */}
@@ -275,17 +270,14 @@ export default function ReportClient() {
                   ? `vs ${eur(data.summary.prev.totalExpenses)} mes ant.`
                   : undefined
               }
-              accentColor="var(--negative)"
             />
             <KpiCard
               label="Ingresos"
               value={eur(data.summary.totalIncome)}
-              accentColor="var(--positive)"
             />
             <KpiCard
               label="Ahorro neto"
               value={eur(data.summary.netFlow)}
-              accentColor="#3B82F6"
             />
             <KpiCard
               label="Tasa ahorro"
@@ -294,7 +286,6 @@ export default function ReportClient() {
                   ? `${data.summary.savingsRate}%`
                   : '—'
               }
-              accentColor="#A855F7"
             />
           </div>
 

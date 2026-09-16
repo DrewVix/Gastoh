@@ -378,13 +378,15 @@ export default function DashboardClient() {
 
             {/* Grupos de categorías */}
             {(data.byGroup ?? []).length > 0 && (
-              <div className="card overflow-hidden min-w-0 overflow-x-auto">
+              <div className="card min-w-0">
                 <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--card-border)' }}>
                   <span className="text-sm font-semibold">
                     Gasto por categoría
                     <span className="ml-2 font-normal text-xs" style={{ color: 'var(--muted)' }}>— expande grupos · clic en subcategoría para ver transacciones</span>
                   </span>
                 </div>
+                <div className="overflow-x-auto">
+                <div style={{ minWidth: 640 }}>
 
                 {showMonthCols && (
                   <div className="px-5 py-2 grid text-xs font-semibold"
@@ -427,26 +429,36 @@ export default function DashboardClient() {
                     const groupExpanded = expandedGroupId === group.id
                     const hasSubs = group.subcategories.length > 0
 
+                    const handleGroupActivate = () => {
+                      if (hasSubs) {
+                        setExpandedGroupId(groupExpanded ? null : group.id)
+                        setExpandedCatId(null)
+                        setCatTxs([])
+                      } else {
+                        // Sin subcategorías: drill-down directo
+                        const fakeCat: CategoryRow = { id: group.id, name: group.name, color: group.color, total: group.total, count: 0, pct: group.pct, trend: null, baselineMonthly: null, prevTotal: null, isRecord: false }
+                        toggleCategory(fakeCat)
+                      }
+                    }
+                    const groupSummary = `${group.name}: ${eur(group.total)}, ${group.pct.toFixed(1)}% del total`
+
                     return (
                       <div key={group.id}>
                         {/* ── Fila de grupo ── */}
                         <div
                           className="px-5 py-3 space-y-1.5 cursor-pointer hover:bg-white/5 transition-colors"
                           style={{ background: hasSubs && groupExpanded ? 'rgba(255,255,255,.02)' : undefined }}
-                          onClick={() => {
-                            if (hasSubs) {
-                              setExpandedGroupId(groupExpanded ? null : group.id)
-                              setExpandedCatId(null)
-                              setCatTxs([])
-                            } else {
-                              // Sin subcategorías: drill-down directo
-                              const fakeCat: CategoryRow = { id: group.id, name: group.name, color: group.color, total: group.total, count: 0, pct: group.pct, trend: null, baselineMonthly: null, prevTotal: null, isRecord: false }
-                              toggleCategory(fakeCat)
-                            }
+                          onClick={handleGroupActivate}
+                          role="button"
+                          tabIndex={0}
+                          aria-expanded={hasSubs ? groupExpanded : expandedCatId === group.id}
+                          aria-label={groupSummary}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleGroupActivate() }
                           }}
                         >
                           {showMonthCols && (
-                            <div className="grid items-center gap-2"
+                            <div className="grid items-center gap-2" aria-hidden="true"
                               style={{ gridTemplateColumns: '1fr 100px 100px 100px 70px 50px 28px' }}>
                               <div className="flex items-center gap-2 min-w-0">
                                 <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0 flex items-center justify-center"
@@ -466,7 +478,7 @@ export default function DashboardClient() {
                             </div>
                           )}
                           {showQuarterCols && (
-                            <div className="grid items-center gap-2"
+                            <div className="grid items-center gap-2" aria-hidden="true"
                               style={{ gridTemplateColumns: '1fr 100px 100px 90px 60px 28px' }}>
                               <div className="flex items-center gap-2 min-w-0">
                                 <span style={{ color: group.color }}><CategoryIcon name={group.icon} size={14} /></span>
@@ -482,7 +494,7 @@ export default function DashboardClient() {
                             </div>
                           )}
                           {showYearCols && (
-                            <div className="grid items-center gap-2"
+                            <div className="grid items-center gap-2" aria-hidden="true"
                               style={{ gridTemplateColumns: showProjection ? '1fr 100px 100px 90px 100px 60px 28px' : '1fr 100px 100px 90px 60px 28px' }}>
                               <div className="flex items-center gap-2 min-w-0">
                                 <span style={{ color: group.color }}><CategoryIcon name={group.icon} size={14} /></span>
@@ -502,7 +514,7 @@ export default function DashboardClient() {
                               </span>
                             </div>
                           )}
-                          <div className="h-0.5 rounded-full" style={{ background: 'var(--card-border)' }}>
+                          <div className="h-0.5 rounded-full" aria-hidden="true" style={{ background: 'var(--card-border)' }}>
                             <div className="h-0.5 rounded-full" style={{ width: `${Math.min(100, group.pct)}%`, background: group.color }} />
                           </div>
                         </div>
@@ -544,15 +556,24 @@ export default function DashboardClient() {
                               const diffPct = cat.prevTotal != null && cat.prevTotal > 0
                                 ? ((cat.total - cat.prevTotal) / cat.prevTotal) * 100 : null
 
+                              const subSummary = `${cat.name}: ${eur(cat.total)}, ${cat.pct.toFixed(1)}% del total`
+
                               return (
                                 <div key={key} style={{ borderBottom: '1px solid var(--card-border)' }}>
                                   <div
                                     className="py-2.5 space-y-1 cursor-pointer hover:bg-white/5 transition-colors"
                                     style={{ paddingLeft: '2.5rem', paddingRight: '1.25rem', background: 'rgba(255,255,255,.01)' }}
                                     onClick={() => toggleCategory(cat)}
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-expanded={catExpanded}
+                                    aria-label={subSummary}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCategory(cat) }
+                                    }}
                                   >
                                     {showMonthCols && (
-                                      <div className="grid items-center gap-2"
+                                      <div className="grid items-center gap-2" aria-hidden="true"
                                         style={{ gridTemplateColumns: '1fr 100px 100px 100px 70px 50px 28px' }}>
                                         <div className="flex items-center gap-2 min-w-0">
                                           <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: cat.color }} />
@@ -583,7 +604,7 @@ export default function DashboardClient() {
                                       </div>
                                     )}
                                     {showQuarterCols && (
-                                      <div className="grid items-center gap-2"
+                                      <div className="grid items-center gap-2" aria-hidden="true"
                                         style={{ gridTemplateColumns: '1fr 100px 100px 90px 60px 28px' }}>
                                         <div className="flex items-center gap-2 min-w-0">
                                           <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: cat.color }} />
@@ -599,7 +620,7 @@ export default function DashboardClient() {
                                       </div>
                                     )}
                                     {showYearCols && (
-                                      <div className="grid items-center gap-2"
+                                      <div className="grid items-center gap-2" aria-hidden="true"
                                         style={{ gridTemplateColumns: showProjection ? '1fr 100px 100px 90px 100px 60px 28px' : '1fr 100px 100px 90px 60px 28px' }}>
                                         <div className="flex items-center gap-2 min-w-0">
                                           <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: cat.color }} />
@@ -654,6 +675,8 @@ export default function DashboardClient() {
                       </div>
                     )
                   })}
+                </div>
+                </div>
                 </div>
               </div>
             )}
@@ -736,7 +759,7 @@ export default function DashboardClient() {
                             </span>
                           </div>
                           <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--card-border)' }}>
-                            <div className="h-2 rounded-full transition-all"
+                            <div className="h-2 rounded-full transition-[width]"
                               style={{ width: `${pct}%`, background: isOnTrack ? 'var(--positive)' : 'var(--muted)' }} />
                           </div>
                           <div className="flex justify-between mt-1">

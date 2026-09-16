@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Plus, Trash2, Check, X, Shield, KeyRound } from 'lucide-react'
 import Skeleton from './Skeleton'
+import ConfirmDialog from './ConfirmDialog'
 
 interface User {
   id: string; username: string; isAdmin: boolean; createdAt: string
@@ -17,10 +18,12 @@ export default function SettingsClient() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [newUsername, setNewUsername] = useState('')
   const [newPassword, setNewPassword] = useState('')
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('')
   const [creatingUser, setCreatingUser] = useState(false)
   const [userError, setUserError] = useState('')
   const [changePwId, setChangePwId] = useState<string | null>(null)
   const [newPw, setNewPw] = useState('')
+  const [confirmPw, setConfirmPw] = useState('')
   const [pwError, setPwError] = useState('')
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [actionError, setActionError] = useState('')
@@ -28,6 +31,7 @@ export default function SettingsClient() {
   // ── Own account (self-service password change) ──
   const [myUsername, setMyUsername] = useState('')
   const [myNewPw, setMyNewPw] = useState('')
+  const [myConfirmPw, setMyConfirmPw] = useState('')
   const [myPwError, setMyPwError] = useState('')
   const [myPwSuccess, setMyPwSuccess] = useState(false)
   const [myPwSaving, setMyPwSaving] = useState(false)
@@ -54,6 +58,7 @@ export default function SettingsClient() {
 
   async function changeMyPassword() {
     if (myNewPw.length < 6) { setMyPwError('La contraseña debe tener al menos 6 caracteres'); return }
+    if (myNewPw !== myConfirmPw) { setMyPwError('Las contraseñas no coinciden'); return }
     setMyPwError('')
     setMyPwSaving(true)
     const res = await fetch(`/api/users/${currentUserId}`, {
@@ -64,6 +69,7 @@ export default function SettingsClient() {
     setMyPwSaving(false)
     if (!res.ok) { const d = await res.json(); setMyPwError(d.error); return }
     setMyNewPw('')
+    setMyConfirmPw('')
     setMyPwSuccess(true)
     setTimeout(() => setMyPwSuccess(false), 3000)
   }
@@ -72,6 +78,7 @@ export default function SettingsClient() {
   async function createUser() {
     if (!newUsername.trim() || !newPassword) { setUserError('Usuario y contraseña requeridos'); return }
     if (newPassword.length < 6) { setUserError('La contraseña debe tener al menos 6 caracteres'); return }
+    if (newPassword !== newPasswordConfirm) { setUserError('Las contraseñas no coinciden'); return }
     setUserError('')
     const res = await fetch('/api/users', {
       method: 'POST',
@@ -79,19 +86,27 @@ export default function SettingsClient() {
       body: JSON.stringify({ username: newUsername.trim(), password: newPassword }),
     })
     if (!res.ok) { const d = await res.json(); setUserError(d.error); return }
-    setCreatingUser(false); setNewUsername(''); setNewPassword(''); loadUsers()
+    setCreatingUser(false); setNewUsername(''); setNewPassword(''); setNewPasswordConfirm(''); loadUsers()
   }
 
-  async function deleteUser(id: string, username: string) {
-    if (!confirm(`¿Eliminar el usuario "${username}"?`)) return
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; username: string } | null>(null)
+
+  function deleteUser(id: string, username: string) {
+    setDeleteTarget({ id, username })
+  }
+
+  async function confirmDeleteUser() {
+    if (!deleteTarget) return
     setActionError('')
-    const res = await fetch(`/api/users/${id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/users/${deleteTarget.id}`, { method: 'DELETE' })
+    setDeleteTarget(null)
     if (!res.ok) { const d = await res.json(); setActionError(d.error); return }
     loadUsers()
   }
 
   async function changePassword(id: string) {
     if (newPw.length < 6) { setPwError('La contraseña debe tener al menos 6 caracteres'); return }
+    if (newPw !== confirmPw) { setPwError('Las contraseñas no coinciden'); return }
     setPwError('')
     const res = await fetch(`/api/users/${id}`, {
       method: 'PATCH',
@@ -99,7 +114,7 @@ export default function SettingsClient() {
       body: JSON.stringify({ password: newPw }),
     })
     if (!res.ok) { const d = await res.json(); setPwError(d.error); return }
-    setChangePwId(null); setNewPw('')
+    setChangePwId(null); setNewPw(''); setConfirmPw('')
   }
 
   return (
@@ -114,6 +129,9 @@ export default function SettingsClient() {
         <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
           <input type="password" placeholder="Nueva contraseña" value={myNewPw}
             onChange={(e) => { setMyNewPw(e.target.value); setMyPwError(''); setMyPwSuccess(false) }}
+            className="flex-1 px-3 py-2 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
+          <input type="password" placeholder="Confirmar contraseña" value={myConfirmPw}
+            onChange={(e) => { setMyConfirmPw(e.target.value); setMyPwError(''); setMyPwSuccess(false) }}
             onKeyDown={(e) => e.key === 'Enter' && changeMyPassword()}
             className="flex-1 px-3 py-2 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
           <button onClick={changeMyPassword} disabled={myPwSaving}
@@ -155,6 +173,9 @@ export default function SettingsClient() {
                 autoFocus className="w-full px-3 py-2 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
               <input type="password" placeholder="Contraseña (mín. 6 caracteres)" value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
+              <input type="password" placeholder="Confirmar contraseña" value={newPasswordConfirm}
+                onChange={(e) => setNewPasswordConfirm(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && createUser()}
                 className="w-full px-3 py-2 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
               {userError && <p className="text-red-400 text-xs">{userError}</p>}
@@ -208,34 +229,38 @@ export default function SettingsClient() {
                       </div>
                     </div>
                     <button
-                      onClick={() => { setChangePwId(changePwId === u.id ? null : u.id); setNewPw(''); setPwError('') }}
+                      onClick={() => { setChangePwId(changePwId === u.id ? null : u.id); setNewPw(''); setConfirmPw(''); setPwError('') }}
                       className="p-1.5 rounded hover:bg-white/10 transition-colors"
                       style={{ color: 'var(--muted)' }}
-                      title="Cambiar contraseña">
+                      aria-label={`Cambiar contraseña de ${u.username}`} title="Cambiar contraseña">
                       <KeyRound size={14} />
                     </button>
                     {u.id !== currentUserId && (
                       <button onClick={() => deleteUser(u.id, u.username)}
                         className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400"
-                        title="Eliminar usuario">
+                        aria-label={`Eliminar usuario ${u.username}`} title="Eliminar usuario">
                         <Trash2 size={14} />
                       </button>
                     )}
                   </div>
                   {changePwId === u.id && (
                     <div className="px-4 pb-3" style={{ borderTop: '1px solid var(--card-border)', paddingTop: '0.75rem' }}>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <input type="password" placeholder="Nueva contraseña" value={newPw}
                           onChange={(e) => { setNewPw(e.target.value); setPwError('') }}
-                          onKeyDown={(e) => e.key === 'Enter' && changePassword(u.id)}
                           autoFocus className="flex-1 px-3 py-1.5 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
+                        <input type="password" placeholder="Confirmar contraseña" value={confirmPw}
+                          onChange={(e) => { setConfirmPw(e.target.value); setPwError('') }}
+                          onKeyDown={(e) => e.key === 'Enter' && changePassword(u.id)}
+                          className="flex-1 px-3 py-1.5 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
                         <button onClick={() => changePassword(u.id)}
-                          className="flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg"
+                          className="flex items-center justify-center gap-1 text-sm px-3 py-1.5 rounded-lg flex-shrink-0"
                           style={{ background: 'var(--accent)', color: '#fff' }}>
                           <Check size={14} /> Guardar
                         </button>
-                        <button onClick={() => { setChangePwId(null); setNewPw(''); setPwError('') }}
-                          className="p-1.5 rounded hover:bg-white/10" style={{ color: 'var(--muted)' }}>
+                        <button onClick={() => { setChangePwId(null); setNewPw(''); setConfirmPw(''); setPwError('') }}
+                          className="p-1.5 rounded hover:bg-white/10 flex-shrink-0" style={{ color: 'var(--muted)' }}
+                          aria-label="Cancelar cambio de contraseña">
                           <X size={14} />
                         </button>
                       </div>
@@ -248,6 +273,14 @@ export default function SettingsClient() {
           </div>
         </>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Eliminar usuario"
+        message={`¿Eliminar el usuario "${deleteTarget?.username}"?`}
+        onConfirm={confirmDeleteUser}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }

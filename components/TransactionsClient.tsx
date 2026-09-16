@@ -236,11 +236,11 @@ export default function TransactionsClient() {
           <Search size={13} style={{ color: 'var(--muted)', flexShrink: 0 }} />
           <input type="text" placeholder="Buscar..." value={q}
             onChange={(e) => { setQ(e.target.value); setPage(1) }}
-            className="flex-1 text-sm bg-transparent outline-none min-w-0" />
+            className="flex-1 text-base bg-transparent outline-none min-w-0" />
         </div>
 
         <select value={filterMonth} onChange={(e) => { setFilterMonth(e.target.value); setPage(1) }}
-          className="text-sm px-3 py-1.5 rounded-lg outline-none" style={SEL}>
+          className="text-base px-3 py-1.5 rounded-lg outline-none" style={SEL}>
           <option value="">Todos los meses</option>
           {Array.from({ length: 12 }, (_, i) => {
             const d = new Date(); d.setMonth(d.getMonth() - i)
@@ -250,7 +250,7 @@ export default function TransactionsClient() {
         </select>
 
         <select value={filterType} onChange={(e) => { setFilterType(e.target.value as typeof filterType); setPage(1) }}
-          className="text-sm px-3 py-1.5 rounded-lg outline-none" style={SEL}>
+          className="text-base px-3 py-1.5 rounded-lg outline-none" style={SEL}>
           <option value="">Gastos e ingresos</option>
           <option value="gasto">Solo gastos</option>
           <option value="ingreso">Solo ingresos</option>
@@ -258,7 +258,7 @@ export default function TransactionsClient() {
         </select>
 
         <select value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPage(1) }}
-          className="text-sm px-3 py-1.5 rounded-lg outline-none" style={SEL}>
+          className="text-base px-3 py-1.5 rounded-lg outline-none" style={SEL}>
           <option value="">Todas las categorías</option>
           <option value="none">Sin categoría</option>
           <CategoryOptions categories={categories} />
@@ -292,7 +292,7 @@ export default function TransactionsClient() {
         <div className="hidden md:flex items-center gap-2 card p-3">
           <span className="text-xs" style={{ color: 'var(--muted)' }}>Gasto</span>
           <select value={filterFixed} onChange={(e) => { setFilterFixed(e.target.value as typeof filterFixed); setPage(1) }}
-            className="text-sm px-3 py-1.5 rounded-lg outline-none" style={SEL}>
+            className="text-base px-3 py-1.5 rounded-lg outline-none" style={SEL}>
             <option value="">Fijo o variable</option>
             <option value="fixed">Solo fijos</option>
             <option value="variable">Solo variables</option>
@@ -301,16 +301,16 @@ export default function TransactionsClient() {
           <span className="text-xs ml-2" style={{ color: 'var(--muted)' }}>Importe</span>
           <input type="number" min="0" step="0.01" placeholder="Mín €" value={filterMinAmount}
             onChange={(e) => { setFilterMinAmount(e.target.value); setPage(1) }}
-            className="w-24 text-sm px-2.5 py-1.5 rounded-lg outline-none" style={SEL} />
+            className="w-24 text-base px-2.5 py-1.5 rounded-lg outline-none" style={SEL} />
           <span className="text-xs" style={{ color: 'var(--muted)' }}>–</span>
           <input type="number" min="0" step="0.01" placeholder="Máx €" value={filterMaxAmount}
             onChange={(e) => { setFilterMaxAmount(e.target.value); setPage(1) }}
-            className="w-24 text-sm px-2.5 py-1.5 rounded-lg outline-none" style={SEL} />
+            className="w-24 text-base px-2.5 py-1.5 rounded-lg outline-none" style={SEL} />
 
           <span className="text-xs ml-3" style={{ color: 'var(--muted)' }}>Ordenar por</span>
           <select value={`${sortBy}-${sortDir}`}
             onChange={(e) => { const [b, d] = e.target.value.split('-'); setSortBy(b as 'date' | 'amount'); setSortDir(d as 'asc' | 'desc') }}
-            className="text-sm px-3 py-1.5 rounded-lg outline-none" style={SEL}>
+            className="text-base px-3 py-1.5 rounded-lg outline-none" style={SEL}>
             <option value="date-desc">Fecha (recientes primero)</option>
             <option value="date-asc">Fecha (antiguas primero)</option>
             <option value="amount-desc">Importe (mayor primero)</option>
@@ -357,12 +357,12 @@ export default function TransactionsClient() {
             <Search size={14} style={{ color: 'var(--muted)', flexShrink: 0 }} />
             <input type="text" placeholder="Buscar..." value={q}
               onChange={(e) => { setQ(e.target.value); setPage(1) }}
-              className="flex-1 text-sm bg-transparent outline-none min-w-0" />
+              className="flex-1 text-base bg-transparent outline-none min-w-0" />
             {q && <button onClick={() => { setQ(''); setPage(1) }}><X size={13} style={{ color: 'var(--muted)' }} /></button>}
           </div>
 
           <select value={filterMonth} onChange={(e) => { setFilterMonth(e.target.value); setPage(1) }}
-            className="w-full text-sm px-3 py-2.5 rounded-lg outline-none" style={SEL}>
+            className="w-full text-base px-3 py-2.5 rounded-lg outline-none" style={SEL}>
             <option value="">Todos los meses</option>
             {Array.from({ length: 12 }, (_, i) => {
               const d = new Date(); d.setMonth(d.getMonth() - i)
@@ -372,7 +372,7 @@ export default function TransactionsClient() {
           </select>
 
           <select value={filterType} onChange={(e) => { setFilterType(e.target.value as typeof filterType); setPage(1) }}
-            className="w-full text-sm px-3 py-2.5 rounded-lg outline-none" style={SEL}>
+            className="w-full text-base px-3 py-2.5 rounded-lg outline-none" style={SEL}>
             <option value="">Gastos e ingresos</option>
             <option value="gasto">Solo gastos</option>
             <option value="ingreso">Solo ingresos</option>
@@ -380,14 +380,14 @@ export default function TransactionsClient() {
           </select>
 
           <select value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPage(1) }}
-            className="w-full text-sm px-3 py-2.5 rounded-lg outline-none" style={SEL}>
+            className="w-full text-base px-3 py-2.5 rounded-lg outline-none" style={SEL}>
             <option value="">Todas las categorías</option>
             <option value="none">Sin categoría</option>
             <CategoryOptions categories={categories} />
           </select>
 
           <select value={filterFixed} onChange={(e) => { setFilterFixed(e.target.value as typeof filterFixed); setPage(1) }}
-            className="w-full text-sm px-3 py-2.5 rounded-lg outline-none" style={SEL}>
+            className="w-full text-base px-3 py-2.5 rounded-lg outline-none" style={SEL}>
             <option value="">Fijo o variable</option>
             <option value="fixed">Solo gastos fijos</option>
             <option value="variable">Solo gastos variables</option>
@@ -396,15 +396,15 @@ export default function TransactionsClient() {
           <div className="flex items-center gap-2">
             <input type="number" min="0" step="0.01" placeholder="Importe mín €" value={filterMinAmount}
               onChange={(e) => { setFilterMinAmount(e.target.value); setPage(1) }}
-              className="flex-1 text-sm px-3 py-2.5 rounded-lg outline-none min-w-0" style={SEL} />
+              className="flex-1 text-base px-3 py-2.5 rounded-lg outline-none min-w-0" style={SEL} />
             <input type="number" min="0" step="0.01" placeholder="Importe máx €" value={filterMaxAmount}
               onChange={(e) => { setFilterMaxAmount(e.target.value); setPage(1) }}
-              className="flex-1 text-sm px-3 py-2.5 rounded-lg outline-none min-w-0" style={SEL} />
+              className="flex-1 text-base px-3 py-2.5 rounded-lg outline-none min-w-0" style={SEL} />
           </div>
 
           <select value={`${sortBy}-${sortDir}`}
             onChange={(e) => { const [b, d] = e.target.value.split('-'); setSortBy(b as 'date' | 'amount'); setSortDir(d as 'asc' | 'desc') }}
-            className="w-full text-sm px-3 py-2.5 rounded-lg outline-none" style={SEL}>
+            className="w-full text-base px-3 py-2.5 rounded-lg outline-none" style={SEL}>
             <option value="date-desc">Fecha (recientes primero)</option>
             <option value="date-asc">Fecha (antiguas primero)</option>
             <option value="amount-desc">Importe (mayor primero)</option>
@@ -478,7 +478,7 @@ export default function TransactionsClient() {
                         value={editNotesValue}
                         onChange={e => setEditNotesValue(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') saveNotes(tx.id); if (e.key === 'Escape') setEditNotesId(null) }}
-                        className="text-xs px-2 py-0.5 rounded outline-none flex-1"
+                        className="text-base px-2 py-0.5 rounded outline-none flex-1"
                         style={INPUT_STYLE}
                         placeholder="Añadir nota..."
                       />
@@ -514,7 +514,7 @@ export default function TransactionsClient() {
                     <select autoFocus defaultValue={tx.category?.id ?? ''}
                       onBlur={(e) => updateCategory(tx.id, e.target.value)}
                       onChange={(e) => updateCategory(tx.id, e.target.value)}
-                      className="text-xs px-2 py-1 rounded outline-none w-full"
+                      className="text-base px-2 py-1 rounded outline-none w-full"
                       style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}>
                       <option value="">Sin categoría</option>
                       <CategoryOptions categories={categories} />
@@ -597,7 +597,7 @@ export default function TransactionsClient() {
                 <select autoFocus defaultValue={tx.category?.id ?? ''}
                   onBlur={(e) => updateCategory(tx.id, e.target.value)}
                   onChange={(e) => updateCategory(tx.id, e.target.value)}
-                  className="text-xs px-2 py-1 rounded outline-none flex-1"
+                  className="text-base px-2 py-1 rounded outline-none flex-1"
                   style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}>
                   <option value="">Sin categoría</option>
                   <CategoryOptions categories={categories} />
@@ -664,7 +664,7 @@ export default function TransactionsClient() {
         onClick={openNewModal}
         className="md:hidden fixed right-4 z-40 flex items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
         style={{
-          bottom: '76px',
+          bottom: 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 16px)',
           width: '52px',
           boxShadow: '0 8px 24px -8px rgba(0,0,0,.6)',
           height: '52px',
@@ -685,7 +685,7 @@ export default function TransactionsClient() {
             style={{ background: 'var(--card)', maxHeight: '92vh', overflowY: 'auto' }}>
             <div className="flex items-center justify-between">
               <h2 className="text-base font-semibold">{editTxId ? 'Editar transacción' : 'Nueva transacción'}</h2>
-              <button onClick={() => setShowNewModal(false)} className="p-1 hover:opacity-60"><X size={18} /></button>
+              <button onClick={() => setShowNewModal(false)} className="p-2 -m-2 hover:opacity-60" aria-label="Cerrar"><X size={18} /></button>
             </div>
 
             <form onSubmit={submitTransaction} className="space-y-3">
@@ -709,14 +709,14 @@ export default function TransactionsClient() {
                 <div>
                   <label className="text-xs mb-1 block" style={{ color: 'var(--muted)' }}>Fecha</label>
                   <input required type="date" value={newDate} onChange={e => setNewDate(e.target.value)}
-                    className="w-full text-sm px-3 py-2.5 rounded-lg outline-none"
+                    className="w-full text-base px-3 py-2.5 rounded-lg outline-none"
                     style={INPUT_STYLE} />
                 </div>
                 <div>
                   <label className="text-xs mb-1 block" style={{ color: 'var(--muted)' }}>Importe (€)</label>
                   <input required type="number" step="0.01" min="0" placeholder="0,00"
                     value={newAmount} onChange={e => setNewAmount(e.target.value)}
-                    className="w-full text-sm px-3 py-2.5 rounded-lg outline-none"
+                    className="w-full text-base px-3 py-2.5 rounded-lg outline-none"
                     style={INPUT_STYLE} />
                 </div>
               </div>
@@ -729,7 +729,7 @@ export default function TransactionsClient() {
                 <input required type="text"
                   placeholder={newType === 'gasto' ? 'Ej: Compra en Mercadona' : 'Ej: Nómina, Bizum de un amigo'}
                   value={newDesc} onChange={e => setNewDesc(e.target.value)}
-                  className="w-full text-sm px-3 py-2.5 rounded-lg outline-none"
+                  className="w-full text-base px-3 py-2.5 rounded-lg outline-none"
                   style={INPUT_STYLE} />
               </div>
 
@@ -737,7 +737,7 @@ export default function TransactionsClient() {
               <div>
                 <label className="text-xs mb-1 block" style={{ color: 'var(--muted)' }}>Categoría</label>
                 <select value={newCategory} onChange={e => setNewCategory(e.target.value)}
-                  className="w-full text-sm px-3 py-2.5 rounded-lg outline-none"
+                  className="w-full text-base px-3 py-2.5 rounded-lg outline-none"
                   style={INPUT_STYLE}>
                   <option value="">Sin categoría</option>
                   <CategoryOptions categories={categories} />
@@ -749,7 +749,7 @@ export default function TransactionsClient() {
                 <label className="text-xs mb-1 block" style={{ color: 'var(--muted)' }}>Notas (opcional)</label>
                 <input type="text" placeholder="Notas adicionales..."
                   value={newNotes} onChange={e => setNewNotes(e.target.value)}
-                  className="w-full text-sm px-3 py-2.5 rounded-lg outline-none"
+                  className="w-full text-base px-3 py-2.5 rounded-lg outline-none"
                   style={INPUT_STYLE} />
               </div>
 

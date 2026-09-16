@@ -90,8 +90,9 @@ export default function Sidebar() {
             </span>
             <button
               onClick={handleLogout}
-              className="p-1 rounded hover:bg-white/10 transition-colors flex-shrink-0"
+              className="p-2 rounded hover:bg-white/10 transition-colors flex-shrink-0"
               style={{ color: 'var(--muted)' }}
+              aria-label="Cerrar sesión"
               title="Cerrar sesión"
             >
               <LogOut size={14} />
@@ -106,7 +107,7 @@ export default function Sidebar() {
         style={{
           background: 'var(--card)',
           borderTop: '1px solid var(--card-border)',
-          height: '60px',
+          minHeight: 'var(--bottom-nav-height)',
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >

@@ -129,11 +129,11 @@ export default function SettingsClient() {
         <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
           <input type="password" placeholder="Nueva contraseña" value={myNewPw}
             onChange={(e) => { setMyNewPw(e.target.value); setMyPwError(''); setMyPwSuccess(false) }}
-            className="flex-1 px-3 py-2 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
+            className="flex-1 px-3 py-2 rounded-lg text-base outline-none" style={INPUT_STYLE} />
           <input type="password" placeholder="Confirmar contraseña" value={myConfirmPw}
             onChange={(e) => { setMyConfirmPw(e.target.value); setMyPwError(''); setMyPwSuccess(false) }}
             onKeyDown={(e) => e.key === 'Enter' && changeMyPassword()}
-            className="flex-1 px-3 py-2 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
+            className="flex-1 px-3 py-2 rounded-lg text-base outline-none" style={INPUT_STYLE} />
           <button onClick={changeMyPassword} disabled={myPwSaving}
             className="flex items-center justify-center gap-1.5 text-sm px-3 py-2 rounded-lg transition-opacity disabled:opacity-50"
             style={{ background: 'var(--accent)', color: '#fff' }}>
@@ -170,14 +170,14 @@ export default function SettingsClient() {
               <h3 className="text-sm font-medium">Nuevo usuario</h3>
               <input type="text" placeholder="Nombre de usuario" value={newUsername}
                 onChange={(e) => setNewUsername(e.target.value)}
-                autoFocus className="w-full px-3 py-2 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
+                autoFocus className="w-full px-3 py-2 rounded-lg text-base outline-none" style={INPUT_STYLE} />
               <input type="password" placeholder="Contraseña (mín. 6 caracteres)" value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
+                className="w-full px-3 py-2 rounded-lg text-base outline-none" style={INPUT_STYLE} />
               <input type="password" placeholder="Confirmar contraseña" value={newPasswordConfirm}
                 onChange={(e) => setNewPasswordConfirm(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && createUser()}
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
+                className="w-full px-3 py-2 rounded-lg text-base outline-none" style={INPUT_STYLE} />
               {userError && <p className="text-red-400 text-xs">{userError}</p>}
               <div className="flex gap-2">
                 <button onClick={createUser} className="flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg" style={{ background: 'var(--accent)', color: '#fff' }}>
@@ -248,11 +248,11 @@ export default function SettingsClient() {
                       <div className="flex flex-col sm:flex-row gap-2">
                         <input type="password" placeholder="Nueva contraseña" value={newPw}
                           onChange={(e) => { setNewPw(e.target.value); setPwError('') }}
-                          autoFocus className="flex-1 px-3 py-1.5 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
+                          autoFocus className="flex-1 px-3 py-1.5 rounded-lg text-base outline-none" style={INPUT_STYLE} />
                         <input type="password" placeholder="Confirmar contraseña" value={confirmPw}
                           onChange={(e) => { setConfirmPw(e.target.value); setPwError('') }}
                           onKeyDown={(e) => e.key === 'Enter' && changePassword(u.id)}
-                          className="flex-1 px-3 py-1.5 rounded-lg text-sm outline-none" style={INPUT_STYLE} />
+                          className="flex-1 px-3 py-1.5 rounded-lg text-base outline-none" style={INPUT_STYLE} />
                         <button onClick={() => changePassword(u.id)}
                           className="flex items-center justify-center gap-1 text-sm px-3 py-1.5 rounded-lg flex-shrink-0"
                           style={{ background: 'var(--accent)', color: '#fff' }}>

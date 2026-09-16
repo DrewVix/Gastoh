@@ -239,13 +239,13 @@ export default function DashboardClient() {
           <div className="flex items-center gap-2">
             <span className="text-xs" style={{ color: 'var(--muted)' }}>Desde</span>
             <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)}
-              className="text-sm px-3 py-1.5 rounded-lg outline-none"
+              className="text-base px-3 py-1.5 rounded-lg outline-none"
               style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }} />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs" style={{ color: 'var(--muted)' }}>Hasta</span>
             <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)}
-              className="text-sm px-3 py-1.5 rounded-lg outline-none"
+              className="text-base px-3 py-1.5 rounded-lg outline-none"
               style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }} />
           </div>
         </div>
@@ -718,7 +718,7 @@ export default function DashboardClient() {
                               if (e.key === 'Enter') saveGoal(parseFloat(goalInput) || suggested)
                               if (e.key === 'Escape') setEditingGoal(false)
                             }}
-                            className="flex-1 px-3 py-1.5 rounded text-sm outline-none"
+                            className="flex-1 px-3 py-1.5 rounded text-base outline-none"
                             style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
                             autoFocus
                           />

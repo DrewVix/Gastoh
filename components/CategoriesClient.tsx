@@ -133,7 +133,7 @@ export default function CategoriesClient() {
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') createCategory(); if (e.key === 'Escape') setCreating('closed') }}
-            className="flex-1 min-w-[140px] px-3 py-2.5 rounded text-sm outline-none"
+            className="flex-1 min-w-[140px] px-3 py-2.5 rounded text-base outline-none"
             style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
             autoFocus
           />
@@ -163,7 +163,7 @@ export default function CategoriesClient() {
       <div className="flex items-center gap-2 flex-wrap flex-1">
         <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditId(null) }}
-          className="flex-1 min-w-[100px] px-2 py-1 rounded text-sm outline-none"
+          className="flex-1 min-w-[100px] px-2 py-1 rounded text-base outline-none"
           style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }}
           autoFocus />
         <div className="flex gap-1 flex-wrap">

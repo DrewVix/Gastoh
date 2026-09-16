@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-dvh flex items-center justify-center p-4">
       <div className="card w-full max-w-sm p-8 text-center">
         <div className="font-display text-5xl font-semibold mb-2" style={{ color: 'var(--accent)' }}>404</div>
         <h1 className="text-lg font-semibold mb-1">Página no encontrada</h1>

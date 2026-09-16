@@ -68,7 +68,8 @@ export default function CalendarClient() {
         <div className="flex items-center gap-1">
           <button onClick={prevMonth}
             className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-            style={{ color: 'var(--muted)' }}>
+            style={{ color: 'var(--muted)' }}
+            aria-label="Mes anterior">
             <ChevronLeft size={18} />
           </button>
           <button
@@ -79,7 +80,8 @@ export default function CalendarClient() {
           </button>
           <button onClick={nextMonth}
             className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-            style={{ color: 'var(--muted)' }}>
+            style={{ color: 'var(--muted)' }}
+            aria-label="Mes siguiente">
             <ChevronRight size={18} />
           </button>
         </div>

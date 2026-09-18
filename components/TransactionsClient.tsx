@@ -289,7 +289,7 @@ export default function TransactionsClient() {
 
       {/* Desktop: more filters (amount range + sort) */}
       {showMoreFilters && (
-        <div className="hidden md:flex items-center gap-2 card p-3">
+        <div className="hidden md:flex items-center gap-2 flex-wrap card p-3">
           <span className="text-xs" style={{ color: 'var(--muted)' }}>Gasto</span>
           <select value={filterFixed} onChange={(e) => { setFilterFixed(e.target.value as typeof filterFixed); setPage(1) }}
             className="text-base px-3 py-1.5 rounded-lg outline-none" style={SEL}>
@@ -428,6 +428,8 @@ export default function TransactionsClient() {
 
       {/* ── Desktop Table ── */}
       <div className="hidden md:block card overflow-hidden" role="table" aria-label="Transacciones">
+        <div className="overflow-x-auto">
+        <div style={{ minWidth: 650 }}>
         <div className="px-5 py-2.5 border-b text-xs font-semibold grid" role="row"
           style={{ borderColor: 'var(--card-border)', color: 'var(--muted)', gridTemplateColumns: '88px 1fr 110px 200px 64px' }}>
           <span role="columnheader">FECHA</span>
@@ -555,6 +557,8 @@ export default function TransactionsClient() {
               </div>
             </div>
           ))}
+        </div>
+        </div>
         </div>
       </div>
 

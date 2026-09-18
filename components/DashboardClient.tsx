@@ -85,7 +85,7 @@ const PRESETS: { id: Preset; label: string }[] = [
   { id: 'prev-month', label: 'Mes ant.' },
   { id: 'quarter', label: '3 meses' },
   { id: 'year', label: 'Este año' },
-  { id: 'custom', label: 'Personalizado' },
+  { id: 'custom', label: 'A medida' },
 ]
 
 function getRange(preset: Preset, customFrom: string, customTo: string) {
@@ -219,12 +219,12 @@ export default function DashboardClient() {
     <div className="space-y-5">
 
       {/* ── Header: título + selector ── */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="text-xl font-semibold">Dashboard</h1>
-        <div className="flex items-center gap-1 flex-wrap">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold flex-shrink-0">Dashboard</h1>
+        <div className="flex items-center gap-1 md:gap-1.5 min-w-0 overflow-x-auto md:overflow-visible md:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {PRESETS.map((p) => (
             <button key={p.id} onClick={() => setPreset(p.id)}
-              className="px-2.5 py-1.5 rounded-lg text-xs md:text-sm font-medium transition-colors"
+              className="px-2 py-1.5 md:px-2.5 rounded-lg text-[11px] md:text-sm font-medium transition-colors flex-shrink-0"
               style={{
                 background: preset === p.id ? 'var(--accent)' : 'var(--card)',
                 color: preset === p.id ? '#fff' : 'var(--muted)',

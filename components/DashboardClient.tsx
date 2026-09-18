@@ -377,8 +377,11 @@ export default function DashboardClient() {
             </a>
           </div>
 
-          {/* ── Main grid: categorías (izq) + paneles (der) ── */}
+          {/* ── Grid principal: izquierda (categorías + evolución) · derecha (paneles) ── */}
           <div className="grid gap-5 grid-cols-1 md:grid-cols-[1fr_400px] items-start">
+
+            {/* Columna izquierda: categorías + evolución 12 meses */}
+            <div className="space-y-5 min-w-0">
 
             {/* Grupos de categorías */}
             {(data.byGroup ?? []).length > 0 && (
@@ -678,6 +681,23 @@ export default function DashboardClient() {
               </div>
             )}
 
+            {/* Gráfico 12 meses */}
+            <div className="card p-5">
+              <div className="text-sm font-semibold mb-4">Evolución 12 meses</div>
+              <ResponsiveContainer width="100%" height={250} className="md:!h-[200px]">
+                <BarChart data={data.trend} barGap={2}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e1e21" vertical={false} />
+                  <XAxis dataKey="month" tick={TICK} axisLine={false} tickLine={false} />
+                  <YAxis tick={TICK} axisLine={false} tickLine={false}
+                    tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} width={36} />
+                  <Tooltip contentStyle={TT} formatter={(v) => eur(Number(v))} />
+                  <Bar dataKey="expenses" name="Gastos" fill={CHART_NEGATIVE} radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="income" name="Ingresos" fill={CHART_POSITIVE} radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            </div>
+
             {/* Columna derecha: paneles apilados */}
             <div className="space-y-5 min-w-0">
 
@@ -891,30 +911,9 @@ export default function DashboardClient() {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* ── Fila inferior: gráfico 12m + top transacciones ── */}
-          <div className="grid gap-5 grid-cols-1 md:grid-cols-[1fr_400px] items-start">
-
-            {/* Gráfico 12 meses */}
-            <div className="card p-5">
-              <div className="text-sm font-semibold mb-4">Evolución 12 meses</div>
-              <ResponsiveContainer width="100%" height={250} className="md:!h-[200px]">
-                <BarChart data={data.trend} barGap={2}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e1e21" vertical={false} />
-                  <XAxis dataKey="month" tick={TICK} axisLine={false} tickLine={false} />
-                  <YAxis tick={TICK} axisLine={false} tickLine={false}
-                    tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} width={36} />
-                  <Tooltip contentStyle={TT} formatter={(v) => eur(Number(v))} />
-                  <Bar dataKey="expenses" name="Gastos" fill={CHART_NEGATIVE} radius={[3, 3, 0, 0]} />
-                  <Bar dataKey="income" name="Ingresos" fill={CHART_POSITIVE} radius={[3, 3, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Top transacciones */}
-            {data.topTransactions.length > 0 && (
+              {/* Top transacciones */}
+              {data.topTransactions.length > 0 && (
               <div className="card overflow-hidden">
                 <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--card-border)' }}>
                   <span className="text-sm font-semibold">Mayores gastos</span>
@@ -933,6 +932,7 @@ export default function DashboardClient() {
                 </div>
               </div>
             )}
+            </div>
           </div>
         </>
       )}

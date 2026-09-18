@@ -378,7 +378,7 @@ export default function DashboardClient() {
           </div>
 
           {/* ── Main grid: categorías (izq) + paneles (der) ── */}
-          <div className="grid gap-5 grid-cols-1 md:grid-cols-[1fr_400px]">
+          <div className="grid gap-5 grid-cols-1 md:grid-cols-[1fr_400px] items-start">
 
             {/* Grupos de categorías */}
             {(data.byGroup ?? []).length > 0 && (
@@ -895,7 +895,7 @@ export default function DashboardClient() {
           </div>
 
           {/* ── Fila inferior: gráfico 12m + top transacciones ── */}
-          <div className="grid gap-5 grid-cols-1 md:grid-cols-[1fr_400px]">
+          <div className="grid gap-5 grid-cols-1 md:grid-cols-[1fr_400px] items-start">
 
             {/* Gráfico 12 meses */}
             <div className="card p-5">

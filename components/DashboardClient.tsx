@@ -312,12 +312,16 @@ export default function DashboardClient() {
             </div>
 
             <div className="px-4 md:px-6 py-4 md:py-5" style={{ borderLeft: '1px solid var(--card-border)' }}>
-              <div className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Ahorro real</div>
-              <div className="font-display text-2xl md:text-3xl font-semibold tabular-nums" style={{ color: s!.netFlow >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
-                {eur(s!.netFlow)}
+              <div className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Liquidez</div>
+              <div className="font-display text-2xl md:text-3xl font-semibold tabular-nums" style={{ color: s!.netLiquidity >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
+                {eur(s!.netLiquidity)}
+              </div>
+              <div className="mt-2 text-xs" style={{ color: 'var(--muted)' }}>
+                <span style={{ color: '#6366F1' }}>{eur(s!.totalInvested)} invertidos</span>
+                <span className="ml-1">· ahorro real {eur(s!.netFlow)}</span>
               </div>
               {s!.savingsRate != null && (
-                <div className="mt-2 text-xs">
+                <div className="mt-0.5 text-xs">
                   <span style={{ color: s!.savingsRate >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
                     {s!.savingsRate >= 0 ? `Ahorro del ${s!.savingsRate}%` : `Déficit del ${Math.abs(s!.savingsRate)}%`}
                   </span>
@@ -327,12 +331,6 @@ export default function DashboardClient() {
                       · {eur(s!.totalIncome)} ingresados
                     </span>
                   )}
-                </div>
-              )}
-              {s!.totalInvested !== 0 && (
-                <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                  <span style={{ color: '#6366F1' }}>{eur(s!.totalInvested)} invertidos</span>
-                  <span className="ml-1">· liquidez {eur(s!.netLiquidity)}</span>
                 </div>
               )}
             </div>

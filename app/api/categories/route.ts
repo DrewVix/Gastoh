@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/session'
+import { isInvestmentName } from '@/lib/investment'
 
 export async function GET() {
   const session = await getSession()
@@ -23,6 +24,7 @@ export async function GET() {
 
   // Grupos: categorías sin parentId marcadas como grupo, o que ya tienen hijos
   const groups = all.filter(c => c.parentId === null && (c.isGroup || c.children.length > 0))
+    .map(c => ({ ...c, isInvestment: isInvestmentName(c.name) }))
   // Sin grupo: categorías raíz sin hijos y no marcadas como grupo (ej. "Otro")
   const ungrouped = all.filter(c => c.parentId === null && !c.isGroup && c.children.length === 0)
   // Flat: todas, para selectores
@@ -38,6 +40,7 @@ export async function POST(req: NextRequest) {
 
   const { name, icon, color, parentId, isGroup } = await req.json()
   if (!name) return NextResponse.json({ error: 'Name required' }, { status: 400 })
+  if (isInvestmentName(name)) return NextResponse.json({ error: 'Nombre reservado' }, { status: 400 })
 
   const category = await prisma.category.create({
     data: { userId, name, icon, color, parentId: parentId ?? null, isGroup: Boolean(isGroup) },

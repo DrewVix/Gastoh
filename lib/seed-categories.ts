@@ -11,7 +11,9 @@ const GROUPS = [
   { name: 'Digital',       icon: 'Wifi',            color: '#14B8A6', children: ['Suscripciones', 'Telecomunicaciones'] },
   { name: 'Bienestar',     icon: 'HeartPulse',      color: '#22C55E', children: ['Salud', 'Deporte'] },
   { name: 'Casa',          icon: 'Home',            color: '#EAB308', children: ['Vivienda', 'Utilities', 'Seguros'] },
-  { name: 'Finanzas',      icon: 'Landmark',        color: '#EC4899', children: ['Transferencias', 'Efectivo', 'Ingreso', 'Inversion'] },
+  { name: 'Finanzas',      icon: 'Landmark',        color: '#EC4899', children: ['Transferencias', 'Efectivo', 'Ingreso'] },
+  // Inversión: ahorro, no gasto (ver lib/investment.ts). Nombre reservado, no se renombra ni borra
+  { name: 'Inversión',     icon: 'LineChart',       color: '#6366F1', children: ['Inversión general'] },
 ]
 
 const CHILD_ICONS: Record<string, string> = {
@@ -21,7 +23,7 @@ const CHILD_ICONS: Record<string, string> = {
   Suscripciones: 'Radio', Telecomunicaciones: 'Signal',
   Salud: 'Stethoscope', Deporte: 'Dumbbell',
   Vivienda: 'Building2', Utilities: 'Zap', Seguros: 'Shield',
-  Transferencias: 'ArrowLeftRight', Efectivo: 'Banknote', Ingreso: 'TrendingUp', Inversion: 'LineChart',
+  Transferencias: 'ArrowLeftRight', Efectivo: 'Banknote', Ingreso: 'TrendingUp', 'Inversión general': 'LineChart',
 }
 
 // Cada subcategoría hereda el color exacto de su grupo padre; el icono se

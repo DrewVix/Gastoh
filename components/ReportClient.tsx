@@ -28,8 +28,13 @@ interface ReportData {
     totalIncome: number
     netFlow: number
     savingsRate: number | null
+    totalInvested: number
+    investedBuys: number
+    investedSales: number
+    netLiquidity: number
     prev: { totalExpenses: number }
   }
+  investmentBreakdown: { id: string; name: string; color: string; total: number }[]
   fixedTotal: number
   variableTotal: number
   fixedBreakdown: GroupRow[]
@@ -42,7 +47,7 @@ interface ReportData {
     categoryColor: string
   }[]
   recurringTotal: number
-  trend: { month: string; expenses: number; income: number }[]
+  trend: { month: string; expenses: number; income: number; invested: number }[]
 }
 
 const eur = (n: number) =>
@@ -204,6 +209,7 @@ export default function ReportClient() {
           month: m.month,
           Fijo: fixedPart,
           Variable: variablePart,
+          Invertido: Math.round(m.invested),
         }
       })
     : []
@@ -239,8 +245,8 @@ export default function ReportClient() {
 
       {loading && (
         <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[0, 1, 2, 3].map((i) => (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {[0, 1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="card p-4 space-y-2">
                 <Skeleton className="h-3 w-20" />
                 <Skeleton className="h-6 w-24" />
@@ -261,7 +267,7 @@ export default function ReportClient() {
       {!loading && data && (
         <>
           {/* KPI cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <KpiCard
               label="Gastos totales"
               value={eur(data.summary.totalExpenses)}
@@ -287,7 +293,48 @@ export default function ReportClient() {
                   : '—'
               }
             />
+            <KpiCard
+              label="Invertido"
+              value={eur(data.summary.totalInvested)}
+              sub={
+                data.summary.investedSales > 0
+                  ? `compras ${eur(data.summary.investedBuys)} · ventas −${eur(data.summary.investedSales)}`
+                  : undefined
+              }
+            />
+            <KpiCard
+              label="Liquidez neta"
+              value={eur(data.summary.netLiquidity)}
+              sub="ingresos − gastos − invertido"
+            />
           </div>
+
+          {/* Inversión por destino */}
+          {data.investmentBreakdown.length > 0 && (
+            <div className="card p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-1 flex-wrap">
+                <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
+                  Inversión por destino
+                </span>
+                <span className="text-lg font-bold flex-shrink-0" style={{ color: 'var(--foreground)' }}>
+                  {eur(data.summary.totalInvested)}
+                </span>
+              </div>
+              <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+                {data.investmentBreakdown.map((row) => (
+                  <div key={row.id} className="flex items-center justify-between gap-2 py-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: row.color }} />
+                      <span className="text-sm truncate" style={{ color: 'var(--foreground)' }}>{row.name}</span>
+                    </div>
+                    <span className="text-sm font-medium flex-shrink-0" style={{ color: 'var(--foreground)' }}>
+                      {eur(row.total)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Fixed vs Variable */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
@@ -380,6 +427,7 @@ export default function ReportClient() {
                   />
                   <Bar dataKey="Fijo" stackId="a" fill="var(--accent)" radius={[0, 0, 0, 0]} />
                   <Bar dataKey="Variable" stackId="a" fill="var(--negative)" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="Invertido" stackId="b" fill="#6366F1" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

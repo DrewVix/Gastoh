@@ -5,15 +5,17 @@ import {
   startOfMonth, endOfMonth, endOfDay,
   subMonths, subDays, format, differenceInDays,
 } from 'date-fns'
+import { getInvestmentCategoryIds, splitInvestment, inSet } from '@/lib/investment'
 
-async function getPeriodData(from: Date, to: Date, userId: string) {
-  const txs = await prisma.transaction.findMany({
+async function getPeriodData(from: Date, to: Date, userId: string, invIds: Set<string>) {
+  const allTxs = await prisma.transaction.findMany({
     where: { userId, date: { gte: from, lte: to }, isTransfer: false },
     include: {
       category: { select: { id: true, name: true, color: true } },
     },
     orderBy: { amount: 'asc' },
   })
+  const { txs, investment } = splitInvestment(allTxs, invIds)
 
   const expenses = txs.filter((t) => t.amount < 0)
   const income = txs.filter((t) => t.amount > 0)
@@ -62,6 +64,7 @@ async function getPeriodData(from: Date, to: Date, userId: string) {
     byCategory,
     topTransactions,
     topMerchants,
+    investment,
     days,
   }
 }
@@ -105,21 +108,28 @@ export async function GET(req: NextRequest) {
   // Last 3 months start for recurring detection
   const recurringStart = startOfMonth(subMonths(now, 3))
 
-  const [current, prev, trendData, baselineTxs, yearCatTxs, recurringTxs] = await Promise.all([
-    getPeriodData(from, to, userId),
-    getPeriodData(prevFrom, prevTo, userId),
+  const invIds = await getInvestmentCategoryIds(userId)
+  const notInv = (t: { categoryId: string | null }) => !inSet(invIds, t.categoryId)
+
+  const [current, prev, trendData, baselineTxsAll, yearCatTxsAll, recurringTxs] = await Promise.all([
+    getPeriodData(from, to, userId, invIds),
+    getPeriodData(prevFrom, prevTo, userId, invIds),
     Promise.all(
       Array.from({ length: 12 }, (_, i) => {
         const d = subMonths(now, 11 - i)
         const mFrom = startOfMonth(d)
         const mTo = endOfMonth(d)
         return prisma.transaction
-          .findMany({ where: { userId, date: { gte: mFrom, lte: mTo }, isTransfer: false }, select: { amount: true } })
-          .then((txs) => ({
-            month: format(d, 'MMM yy'),
-            expenses: txs.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0),
-            income: txs.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0),
-          }))
+          .findMany({ where: { userId, date: { gte: mFrom, lte: mTo }, isTransfer: false }, select: { amount: true, categoryId: true } })
+          .then((all) => {
+            const txs = all.filter(notInv)
+            return {
+              month: format(d, 'MMM yy'),
+              expenses: txs.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0),
+              income: txs.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0),
+              invested: all.filter((t) => !notInv(t)).reduce((s, t) => s - t.amount, 0),
+            }
+          })
       })
     ),
     prisma.transaction.findMany({
@@ -132,11 +142,14 @@ export async function GET(req: NextRequest) {
       select: { amount: true, categoryId: true, date: true },
     }),
     // Recent 3 months for recurring expense detection
+    // ponytail: incluye inversiones a propósito — son salidas comprometidas (objetivo de ahorro las resta)
     prisma.transaction.findMany({
       where: { userId, date: { gte: recurringStart }, amount: { lt: 0 }, isTransfer: false },
       select: { amount: true, description: true, date: true, category: { select: { name: true, color: true } } },
     }),
   ])
+  const baselineTxs = baselineTxsAll.filter(notInv)
+  const yearCatTxs = yearCatTxsAll.filter(notInv)
 
   // ── Baseline per-day-rate by category ──
   const baselineCatMap = new Map<string, { name: string; color: string; perDay: number }>()
@@ -305,8 +318,13 @@ export async function GET(req: NextRequest) {
     summary: {
       ...current.summary,
       savingsRate,
+      totalInvested: current.investment.total,
+      investedBuys: current.investment.buys,
+      investedSales: current.investment.sales,
+      netLiquidity: current.summary.netFlow - current.investment.total,
       prev: prev.summary,
     },
+    investmentBreakdown: current.investment.breakdown,
     byCategory,
     topTransactions: current.topTransactions,
     topMerchants: current.topMerchants,

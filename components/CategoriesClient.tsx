@@ -12,6 +12,7 @@ interface Category {
   color: string | null
   isDefault: boolean
   isFixed: boolean
+  isInvestment?: boolean
   parentId: string | null
   children: Category[]
   _count: { transactions: number }
@@ -241,13 +242,21 @@ export default function CategoriesClient() {
                         <span className="text-xs truncate" style={{ color: 'var(--muted)' }}>
                           {group.children.length} subcategorías · {totalTx} transacciones
                         </span>
-                        <FixedToggle cat={group} />
+                        {group.isInvestment ? (
+                          <span className="text-xs px-2 py-0.5 rounded-full border flex-shrink-0"
+                            style={{ borderColor: group.color ?? 'var(--accent)', color: group.color ?? 'var(--accent)' }}
+                            title="Ahorro: no cuenta como gasto ni como ingreso">
+                            Inversión
+                          </span>
+                        ) : (
+                          <FixedToggle cat={group} />
+                        )}
                         <button onClick={(e) => { e.stopPropagation(); startEdit(group) }}
                           className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
                           aria-label={`Editar grupo ${group.name}`}>
                           <Pencil size={13} />
                         </button>
-                        {!group.isDefault && (
+                        {!group.isDefault && !group.isInvestment && (
                           <button onClick={(e) => { e.stopPropagation(); deleteCategory(group.id, group.name) }}
                             className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400"
                             aria-label={`Eliminar grupo ${group.name}`}>
@@ -286,7 +295,7 @@ export default function CategoriesClient() {
                                     predeterminada
                                   </span>
                                 )}
-                                <FixedToggle cat={cat} />
+                                {!group.isInvestment && <FixedToggle cat={cat} />}
                                 <button onClick={() => startEdit(cat)}
                                   className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
                                   aria-label={`Editar categoría ${cat.name}`}>

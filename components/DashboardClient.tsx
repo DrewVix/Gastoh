@@ -54,6 +54,8 @@ interface DashboardData {
     expenseCount: number
     avgPerDay: number
     savingsRate: number | null
+    totalInvested: number
+    netLiquidity: number
     prev: {
       totalExpenses: number
       totalIncome: number
@@ -70,7 +72,7 @@ interface DashboardData {
   }>
   topTransactions: Array<{ id: string; date: string; description: string; amount: number; category: string; categoryColor: string }>
   topMerchants: Array<{ name: string; total: number; count: number; categoryColor: string; categoryName: string }>
-  trend: Array<{ month: string; expenses: number; income: number }>
+  trend: Array<{ month: string; expenses: number; income: number; invested: number }>
   insights: Array<{ name: string; color: string; total: number; pct: number; trend: number | null; baselineMonthly: number | null }>
   projection: { projected: number; daysElapsed: number; totalDays: number; pctComplete: number } | null
   overallTrendPct: number
@@ -325,6 +327,12 @@ export default function DashboardClient() {
                       · {eur(s!.totalIncome)} ingresados
                     </span>
                   )}
+                </div>
+              )}
+              {s!.totalInvested !== 0 && (
+                <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                  <span style={{ color: '#6366F1' }}>{eur(s!.totalInvested)} invertidos</span>
+                  <span className="ml-1">· liquidez {eur(s!.netLiquidity)}</span>
                 </div>
               )}
             </div>
@@ -693,6 +701,7 @@ export default function DashboardClient() {
                   <Tooltip contentStyle={TT} formatter={(v) => eur(Number(v))} />
                   <Bar dataKey="expenses" name="Gastos" fill={CHART_NEGATIVE} radius={[3, 3, 0, 0]} />
                   <Bar dataKey="income" name="Ingresos" fill={CHART_POSITIVE} radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="invested" name="Invertido" fill="#6366F1" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

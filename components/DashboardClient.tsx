@@ -73,6 +73,7 @@ interface DashboardData {
   topTransactions: Array<{ id: string; date: string; description: string; amount: number; category: string; categoryColor: string }>
   topMerchants: Array<{ name: string; total: number; count: number; categoryColor: string; categoryName: string }>
   trend: Array<{ month: string; expenses: number; income: number; invested: number }>
+  investmentBreakdown: Array<{ id: string; name: string; color: string; total: number }>
   insights: Array<{ name: string; color: string; total: number; pct: number; trend: number | null; baselineMonthly: number | null }>
   projection: { projected: number; daysElapsed: number; totalDays: number; pctComplete: number } | null
   overallTrendPct: number
@@ -383,10 +384,10 @@ export default function DashboardClient() {
             </a>
           </div>
 
-          {/* ── Grid principal: izquierda (categorías + evolución) · derecha (paneles) ── */}
+          {/* ── Grid principal: izquierda (categorías + evolución + recurrentes/mayores gastos) · derecha (paneles) ── */}
           <div className="grid gap-5 grid-cols-1 md:grid-cols-[1fr_400px] items-start">
 
-            {/* Columna izquierda: categorías + evolución 12 meses */}
+            {/* Columna izquierda: categorías + evolución 12 meses + listas */}
             <div className="space-y-5 min-w-0">
 
             {/* Grupos de categorías */}
@@ -695,13 +696,68 @@ export default function DashboardClient() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e1e21" vertical={false} />
                   <XAxis dataKey="month" tick={TICK} axisLine={false} tickLine={false} />
                   <YAxis tick={TICK} axisLine={false} tickLine={false}
-                    tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} width={36} />
-                  <Tooltip contentStyle={TT} formatter={(v) => eur(Number(v))} />
+                    tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toLocaleString('es-ES', { maximumFractionDigits: 1 })}k` : v} width={36} />
+                  <Tooltip contentStyle={TT} formatter={(v) => eur(Number(v))} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
                   <Bar dataKey="expenses" name="Gastos" fill={CHART_NEGATIVE} radius={[3, 3, 0, 0]} />
                   <Bar dataKey="income" name="Ingresos" fill={CHART_POSITIVE} radius={[3, 3, 0, 0]} />
                   <Bar dataKey="invested" name="Invertido" fill="#6366F1" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+
+            {/* Recurrentes + mayores gastos, en dos columnas bajo el gráfico */}
+            <div className="grid gap-5 grid-cols-1 xl:grid-cols-2 items-start">
+              {/* Gastos recurrentes */}
+              {data.recurring.length > 0 && (
+                <div id="recurring-panel" className="card overflow-hidden min-w-0" style={{ scrollMarginTop: '1rem' }}>
+                  <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--card-border)' }}>
+                    <div className="flex items-center gap-2">
+                      <RefreshCw size={13} style={{ color: 'var(--accent)' }} />
+                      <span className="text-sm font-semibold">
+                        Gastos recurrentes
+                      </span>
+                    </div>
+                    <span className="text-xs font-semibold tabular-nums" style={{ color: 'var(--muted)' }}>
+                      {eur(data.recurringTotal)}/mes
+                    </span>
+                  </div>
+                  <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+                    {data.recurring.map((r, i) => (
+                      <div key={i} className="flex items-center px-5 py-3 gap-3">
+                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: r.categoryColor }} />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm truncate font-medium">{r.name}</div>
+                          <div className="text-xs" style={{ color: 'var(--muted)' }}>
+                            {r.categoryName} · {r.monthCount} meses
+                          </div>
+                        </div>
+                        <div className="text-sm font-semibold tabular-nums flex-shrink-0">{eur(r.monthlyAmount)}/mes</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Top transacciones */}
+              {data.topTransactions.length > 0 && (
+                <div className="card overflow-hidden min-w-0">
+                  <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--card-border)' }}>
+                    <span className="text-sm font-semibold">Mayores gastos</span>
+                  </div>
+                  <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+                    {data.topTransactions.map((tx) => (
+                      <div key={tx.id} className="flex items-center px-5 py-3 gap-3">
+                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: tx.categoryColor }} />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm truncate">{tx.description}</div>
+                          <div className="text-xs" style={{ color: 'var(--muted)' }}>{tx.category} · {tx.date}</div>
+                        </div>
+                        <span className="text-sm font-semibold tabular-nums text-red-400 flex-shrink-0">{eur(tx.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             </div>
 
@@ -888,57 +944,26 @@ export default function DashboardClient() {
                 </div>
               )}
 
-              {/* Gastos recurrentes */}
-              {data.recurring.length > 0 && (
-                <div id="recurring-panel" className="card overflow-hidden" style={{ scrollMarginTop: '1rem' }}>
+              {/* Inversión por destino */}
+              {data.investmentBreakdown.length > 0 && (
+                <div className="card overflow-hidden">
                   <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--card-border)' }}>
-                    <div className="flex items-center gap-2">
-                      <RefreshCw size={13} style={{ color: 'var(--accent)' }} />
-                      <span className="text-sm font-semibold">
-                        Gastos recurrentes
-                      </span>
-                    </div>
-                    <span className="text-xs font-semibold tabular-nums" style={{ color: 'var(--muted)' }}>
-                      {eur(data.recurringTotal)}/mes
+                    <span className="text-sm font-semibold">Inversión</span>
+                    <span className="text-xs font-semibold tabular-nums" style={{ color: '#6366F1' }}>
+                      {eur(s!.totalInvested)}
                     </span>
                   </div>
                   <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
-                    {data.recurring.map((r, i) => (
-                      <div key={i} className="flex items-center px-5 py-3 gap-3">
-                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: r.categoryColor }} />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm truncate font-medium">{r.name}</div>
-                          <div className="text-xs" style={{ color: 'var(--muted)' }}>
-                            {r.categoryName} · {r.monthCount} meses
-                          </div>
-                        </div>
-                        <div className="text-sm font-semibold tabular-nums flex-shrink-0">{eur(r.monthlyAmount)}/mes</div>
+                    {data.investmentBreakdown.map((row) => (
+                      <div key={row.id} className="flex items-center px-5 py-3 gap-3">
+                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: row.color }} />
+                        <div className="text-sm truncate font-medium flex-1 min-w-0">{row.name}</div>
+                        <div className="text-sm font-semibold tabular-nums flex-shrink-0">{eur(row.total)}</div>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-
-              {/* Top transacciones */}
-              {data.topTransactions.length > 0 && (
-              <div className="card overflow-hidden">
-                <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--card-border)' }}>
-                  <span className="text-sm font-semibold">Mayores gastos</span>
-                </div>
-                <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
-                  {data.topTransactions.map((tx) => (
-                    <div key={tx.id} className="flex items-center px-5 py-3 gap-3">
-                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: tx.categoryColor }} />
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm truncate">{tx.description}</div>
-                        <div className="text-xs" style={{ color: 'var(--muted)' }}>{tx.category} · {tx.date}</div>
-                      </div>
-                      <span className="text-sm font-semibold tabular-nums text-red-400 flex-shrink-0">{eur(tx.amount)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
             </div>
           </div>
         </>

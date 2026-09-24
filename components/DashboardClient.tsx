@@ -437,7 +437,7 @@ export default function DashboardClient() {
                   </div>
                 )}
 
-                <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+                <div className="divide-y divide-[var(--card-border)]">
                   {(data.byGroup ?? []).map((group) => {
                     const groupExpanded = expandedGroupId === group.id
                     const hasSubs = group.subcategories.length > 0
@@ -709,7 +709,7 @@ export default function DashboardClient() {
             <div className="grid gap-5 grid-cols-1 xl:grid-cols-2 items-start">
               {/* Gastos recurrentes */}
               {data.recurring.length > 0 && (
-                <div id="recurring-panel" className="card overflow-hidden min-w-0" style={{ scrollMarginTop: '1rem' }}>
+                <div id="recurring-panel" className="card overflow-hidden min-w-0 xl:only:col-span-2" style={{ scrollMarginTop: '1rem' }}>
                   <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--card-border)' }}>
                     <div className="flex items-center gap-2">
                       <RefreshCw size={13} style={{ color: 'var(--accent)' }} />
@@ -721,7 +721,7 @@ export default function DashboardClient() {
                       {eur(data.recurringTotal)}/mes
                     </span>
                   </div>
-                  <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+                  <div className="divide-y divide-[var(--card-border)]">
                     {data.recurring.map((r, i) => (
                       <div key={i} className="flex items-center px-5 py-3 gap-3">
                         <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: r.categoryColor }} />
@@ -740,11 +740,11 @@ export default function DashboardClient() {
 
               {/* Top transacciones */}
               {data.topTransactions.length > 0 && (
-                <div className="card overflow-hidden min-w-0">
+                <div className="card overflow-hidden min-w-0 xl:only:col-span-2">
                   <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--card-border)' }}>
                     <span className="text-sm font-semibold">Mayores gastos</span>
                   </div>
-                  <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+                  <div className="divide-y divide-[var(--card-border)]">
                     {data.topTransactions.map((tx) => (
                       <div key={tx.id} className="flex items-center px-5 py-3 gap-3">
                         <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: tx.categoryColor }} />
@@ -896,7 +896,7 @@ export default function DashboardClient() {
                       Dónde puedes ahorrar
                     </span>
                   </div>
-                  <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+                  <div className="divide-y divide-[var(--card-border)]">
                     {data.insights.map((ins, i) => (
                       <div key={i} className="px-5 py-3 flex items-center gap-3">
                         <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: ins.color }} />
@@ -926,7 +926,7 @@ export default function DashboardClient() {
                   <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--card-border)' }}>
                     <span className="text-sm font-semibold">Dónde más gastas</span>
                   </div>
-                  <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+                  <div className="divide-y divide-[var(--card-border)]">
                     {data.topMerchants.map((m, i) => (
                       <div key={i} className="flex items-center px-5 py-3 gap-3">
                         <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: m.categoryColor }} />
@@ -953,7 +953,7 @@ export default function DashboardClient() {
                       {eur(s!.totalInvested)}
                     </span>
                   </div>
-                  <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+                  <div className="divide-y divide-[var(--card-border)]">
                     {data.investmentBreakdown.map((row) => (
                       <div key={row.id} className="flex items-center px-5 py-3 gap-3">
                         <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: row.color }} />

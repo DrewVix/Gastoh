@@ -204,7 +204,7 @@ export default function CalendarClient() {
               {format(new Date(selectedDay + 'T12:00:00'), "d 'de' MMMM", { locale: es })}
             </span>
           </div>
-          <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+          <div className="divide-y divide-[var(--card-border)]">
             {selectedTxs.map(tx => (
               <div key={tx.id} className="flex items-center px-5 py-3 gap-3">
                 <span className="w-2 h-2 rounded-full flex-shrink-0"

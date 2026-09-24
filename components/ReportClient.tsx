@@ -320,7 +320,7 @@ export default function ReportClient() {
                   {eur(data.summary.totalInvested)}
                 </span>
               </div>
-              <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+              <div className="divide-y divide-[var(--card-border)]">
                 {data.investmentBreakdown.map((row) => (
                   <div key={row.id} className="flex items-center justify-between gap-2 py-2">
                     <div className="flex items-center gap-2 min-w-0">
@@ -367,7 +367,7 @@ export default function ReportClient() {
                   {data.recurring.length} pagos · {eur(data.recurringTotal)}/mes
                 </span>
               </div>
-              <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+              <div className="divide-y divide-[var(--card-border)]">
                 {data.recurring.map((r) => (
                   <div key={r.name} className="flex items-center gap-3 py-2.5">
                     <span

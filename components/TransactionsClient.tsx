@@ -440,7 +440,7 @@ export default function TransactionsClient() {
         </div>
 
         {loading && (
-          <div className="divide-y" style={{ borderColor: 'var(--card-border)' }} aria-hidden="true">
+          <div className="divide-y divide-[var(--card-border)]" aria-hidden="true">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="px-5 py-3 grid items-center gap-2" style={{ gridTemplateColumns: '88px 1fr 110px 200px 64px' }}>
                 <Skeleton className="h-4 w-12" />

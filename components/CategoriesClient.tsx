@@ -274,7 +274,7 @@ export default function CategoriesClient() {
                 {/* Subcategorías */}
                 {expanded && (
                   <div>
-                    <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+                    <div className="divide-y divide-[var(--card-border)]">
                       {group.children.map((cat) => (
                         <div key={cat.id} className="flex items-center flex-wrap gap-x-3 gap-y-2 py-2.5 hover:bg-white/5 transition-colors"
                           style={{ paddingLeft: '2rem', paddingRight: '1rem' }}>
@@ -339,7 +339,7 @@ export default function CategoriesClient() {
               <div className="px-4 py-2" style={{ borderBottom: '1px solid var(--card-border)' }}>
                 <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Sin grupo</span>
               </div>
-              <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+              <div className="divide-y divide-[var(--card-border)]">
                 {ungrouped.map((cat) => {
                   const addingSubHere = typeof creating === 'object' && creating.parentId === cat.id
                   return (

@@ -200,7 +200,7 @@ export default function SettingsClient() {
 
           <div className="card overflow-hidden">
             {usersLoading && (
-              <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+              <div className="divide-y divide-[var(--card-border)]">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="flex items-center gap-3 px-4 py-3">
                     <Skeleton className="h-4 flex-1 max-w-40" />
@@ -210,7 +210,7 @@ export default function SettingsClient() {
                 ))}
               </div>
             )}
-            <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+            <div className="divide-y divide-[var(--card-border)]">
               {users.map((u) => (
                 <div key={u.id}>
                   <div className="flex items-center gap-3 px-4 py-3">

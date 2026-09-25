@@ -238,7 +238,7 @@ export default function CategoriesClient() {
                         <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: group.color ?? '#9E9E9E' }} />
                         <span className="min-w-0 text-sm font-semibold truncate" title={group.name}>{group.name}</span>
                       </div>
-                      <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
+                      <div className="flex items-center gap-2 flex-wrap min-w-0">
                         <span className="text-xs truncate" style={{ color: 'var(--muted)' }}>
                           {group.children.length} subcategorías · {totalTx} transacciones
                         </span>
@@ -286,7 +286,7 @@ export default function CategoriesClient() {
                                 <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ background: cat.color ?? '#9E9E9E' }} />
                                 <span className="min-w-0 text-sm truncate" title={cat.name}>{cat.name}</span>
                               </div>
-                              <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
+                              <div className="flex items-center gap-2 flex-wrap min-w-0">
                                 <span className="text-xs" style={{ color: 'var(--muted)' }}>
                                   {cat._count.transactions} tx
                                 </span>
@@ -353,7 +353,7 @@ export default function CategoriesClient() {
                               <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: cat.color ?? '#9E9E9E' }} />
                               <span className="min-w-0 text-sm truncate" title={cat.name}>{cat.name}</span>
                             </div>
-                            <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
+                            <div className="flex items-center gap-2 flex-wrap min-w-0">
                               <span className="text-xs truncate" style={{ color: 'var(--muted)' }}>
                                 {cat._count.transactions} transacciones
                               </span>

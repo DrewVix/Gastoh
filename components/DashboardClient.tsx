@@ -8,10 +8,11 @@ import {
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, ChevronDown, ChevronRight, RefreshCw, Target } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, ChevronDown, ChevronRight, RefreshCw, Target, Plus } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import Skeleton from './Skeleton'
+import TransactionFormModal from './TransactionFormModal'
 
 function CategoryIcon({ name, size = 14, style }: { name: string | null | undefined; size?: number; style?: React.CSSProperties }) {
   if (!name) return null
@@ -144,6 +145,7 @@ export default function DashboardClient() {
   const [savingsGoal, setSavingsGoal] = useState<number | null>(null)
   const [editingGoal, setEditingGoal] = useState(false)
   const [goalInput, setGoalInput] = useState('')
+  const [showNewTxModal, setShowNewTxModal] = useState(false)
 
   // Cargar objetivo guardado
   useEffect(() => {
@@ -234,6 +236,13 @@ export default function DashboardClient() {
                 border: '1px solid var(--card-border)',
               }}>{p.label}</button>
           ))}
+          <button
+            onClick={() => setShowNewTxModal(true)}
+            className="hidden md:flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors hover:opacity-80 flex-shrink-0"
+            style={{ background: 'var(--accent)', color: '#fff' }}>
+            <Plus size={14} />
+            Nueva
+          </button>
         </div>
       </div>
 
@@ -968,6 +977,29 @@ export default function DashboardClient() {
           </div>
         </>
       )}
+
+      {/* ── FAB: mobile only, fixed above bottom nav ── */}
+      <button
+        onClick={() => setShowNewTxModal(true)}
+        className="md:hidden fixed right-4 z-40 flex items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
+        style={{
+          bottom: 'calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 16px)',
+          width: '52px',
+          boxShadow: '0 8px 24px -8px rgba(0,0,0,.6)',
+          height: '52px',
+          background: 'var(--accent)',
+          color: '#fff',
+        }}
+        aria-label="Nueva transacción"
+      >
+        <Plus size={22} />
+      </button>
+
+      <TransactionFormModal
+        open={showNewTxModal}
+        onClose={() => setShowNewTxModal(false)}
+        onSaved={load}
+      />
     </div>
   )
 }

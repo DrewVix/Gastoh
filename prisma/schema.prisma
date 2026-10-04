@@ -32,6 +32,10 @@ model Transaction {
   isManual      Boolean      @default(false)
   isTransfer    Boolean      @default(false)
   notes         String?
+  // Refund linked to an expense: nets against it instead of counting as income.
+  refundOfId    String?
+  refundOf      Transaction? @relation("Refunds", fields: [refundOfId], references: [id], onDelete: Cascade)
+  refunds       Transaction[] @relation("Refunds")
   rawData       String?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
@@ -40,6 +44,7 @@ model Transaction {
   @@index([userId])
   @@index([date])
   @@index([categoryId])
+  @@index([refundOfId])
 }
 
 model Category {

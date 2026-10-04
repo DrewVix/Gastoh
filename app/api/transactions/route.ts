@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/session'
+import { notRefund, refundedTotal, validateRefund } from '@/lib/refunds'
 
 export async function GET(req: NextRequest) {
   const session = await getSession()
@@ -22,8 +23,9 @@ export async function GET(req: NextRequest) {
   const page = parseInt(searchParams.get('page') ?? '1')
   const limit = parseInt(searchParams.get('limit') ?? '50')
 
+  // Las devoluciones no se listan sueltas: van anidadas en su gasto.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const where: any = { userId }
+  const where: any = { userId, ...notRefund }
 
   if (fromParam && toParam) {
     where.date = {
@@ -79,6 +81,7 @@ export async function GET(req: NextRequest) {
       where,
       include: {
         category: { select: { id: true, name: true, icon: true, color: true, parentId: true, isFixed: true, parent: { select: { id: true, name: true, color: true, icon: true } } } },
+        refunds: { select: { id: true, date: true, amount: true, description: true, notes: true }, orderBy: { date: 'asc' } },
       },
       orderBy: sortBy === 'amount' ? [{ amount: sortDir }] : [{ date: sortDir }],
       skip: (page - 1) * limit,
@@ -87,7 +90,10 @@ export async function GET(req: NextRequest) {
     prisma.transaction.count({ where }),
   ])
 
-  return NextResponse.json({ transactions, total, page, limit })
+  return NextResponse.json({
+    transactions: transactions.map((t) => ({ ...t, refunded: refundedTotal(t) })),
+    total, page, limit,
+  })
 }
 
 export async function POST(req: NextRequest) {
@@ -96,10 +102,18 @@ export async function POST(req: NextRequest) {
   const userId = session.userId!
 
   const body = await req.json()
-  const { date, amount, description, categoryId, notes, isTransfer, currency } = body
+  const { date, amount, description, notes, isTransfer, currency, refundOfId } = body
+  let { categoryId } = body
 
   if (!date || amount === undefined || !description) {
     return NextResponse.json({ error: 'date, amount y description son requeridos' }, { status: 400 })
+  }
+
+  // Devolución: hereda la categoría del gasto y nunca es transferencia.
+  if (refundOfId) {
+    const check = await validateRefund(userId, String(refundOfId), Number(amount))
+    if ('error' in check) return NextResponse.json({ error: check.error }, { status: 400 })
+    categoryId = check.parent.categoryId
   }
 
   if (categoryId) {
@@ -119,7 +133,8 @@ export async function POST(req: NextRequest) {
       description: String(description),
       categoryId: categoryId ?? null,
       notes: notes ? String(notes) : null,
-      isTransfer: Boolean(isTransfer),
+      isTransfer: refundOfId ? false : Boolean(isTransfer),
+      refundOfId: refundOfId ? String(refundOfId) : null,
       isManual: true,
     },
     include: {

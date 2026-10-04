@@ -6,15 +6,17 @@ import {
   subMonths, subDays, format, differenceInDays,
 } from 'date-fns'
 import { getInvestmentCategoryIds, splitInvestment, inSet } from '@/lib/investment'
+import { applyRefunds, notRefund, refundAmounts } from '@/lib/refunds'
 
 async function getPeriodData(from: Date, to: Date, userId: string, invIds: Set<string>) {
-  const allTxs = await prisma.transaction.findMany({
-    where: { userId, date: { gte: from, lte: to }, isTransfer: false },
+  // Devoluciones: se restan del gasto (en su fecha), así que se ordena tras aplicar el neto.
+  const allTxs = applyRefunds(await prisma.transaction.findMany({
+    where: { userId, date: { gte: from, lte: to }, isTransfer: false, ...notRefund },
     include: {
       category: { select: { id: true, name: true, color: true } },
+      ...refundAmounts,
     },
-    orderBy: { amount: 'asc' },
-  })
+  })).sort((a, b) => a.amount - b.amount)
   const { txs, investment } = splitInvestment(allTxs, invIds)
 
   const expenses = txs.filter((t) => t.amount < 0)
@@ -111,7 +113,7 @@ export async function GET(req: NextRequest) {
   const invIds = await getInvestmentCategoryIds(userId)
   const notInv = (t: { categoryId: string | null }) => !inSet(invIds, t.categoryId)
 
-  const [current, prev, trendData, baselineTxsAll, yearCatTxsAll, recurringTxs] = await Promise.all([
+  const [current, prev, trendData, baselineTxsAll, yearCatTxsAll, recurringTxsAll] = await Promise.all([
     getPeriodData(from, to, userId, invIds),
     getPeriodData(prevFrom, prevTo, userId, invIds),
     Promise.all(
@@ -120,7 +122,8 @@ export async function GET(req: NextRequest) {
         const mFrom = startOfMonth(d)
         const mTo = endOfMonth(d)
         return prisma.transaction
-          .findMany({ where: { userId, date: { gte: mFrom, lte: mTo }, isTransfer: false }, select: { amount: true, categoryId: true } })
+          .findMany({ where: { userId, date: { gte: mFrom, lte: mTo }, isTransfer: false, ...notRefund }, select: { amount: true, categoryId: true, ...refundAmounts } })
+          .then(applyRefunds)
           .then((all) => {
             const txs = all.filter(notInv)
             return {
@@ -133,23 +136,25 @@ export async function GET(req: NextRequest) {
       })
     ),
     prisma.transaction.findMany({
-      where: { userId, date: { gte: baselineFrom, lte: baselineTo }, amount: { lt: 0 }, isTransfer: false },
-      select: { amount: true, categoryId: true, category: { select: { name: true, color: true } } },
-    }),
+      where: { userId, date: { gte: baselineFrom, lte: baselineTo }, amount: { lt: 0 }, isTransfer: false, ...notRefund },
+      select: { amount: true, categoryId: true, category: { select: { name: true, color: true } }, ...refundAmounts },
+    }).then(applyRefunds),
     // Per-category monthly totals for last 12 months (record detection)
     prisma.transaction.findMany({
-      where: { userId, date: { gte: yearStart, lte: now }, amount: { lt: 0 }, isTransfer: false },
-      select: { amount: true, categoryId: true, date: true },
-    }),
+      where: { userId, date: { gte: yearStart, lte: now }, amount: { lt: 0 }, isTransfer: false, ...notRefund },
+      select: { amount: true, categoryId: true, date: true, ...refundAmounts },
+    }).then(applyRefunds),
     // Recent 3 months for recurring expense detection
     // ponytail: incluye inversiones a propósito — son salidas comprometidas (objetivo de ahorro las resta)
     prisma.transaction.findMany({
-      where: { userId, date: { gte: recurringStart }, amount: { lt: 0 }, isTransfer: false },
-      select: { amount: true, description: true, date: true, category: { select: { name: true, color: true } } },
-    }),
+      where: { userId, date: { gte: recurringStart }, amount: { lt: 0 }, isTransfer: false, ...notRefund },
+      select: { amount: true, description: true, date: true, category: { select: { name: true, color: true } }, ...refundAmounts },
+    }).then(applyRefunds),
   ])
-  const baselineTxs = baselineTxsAll.filter(notInv)
-  const yearCatTxs = yearCatTxsAll.filter(notInv)
+  // Un gasto devuelto por completo queda a 0 y deja de contar.
+  const recurringTxs = recurringTxsAll.filter((t) => t.amount < 0)
+  const baselineTxs = baselineTxsAll.filter((t) => t.amount < 0 && notInv(t))
+  const yearCatTxs = yearCatTxsAll.filter((t) => t.amount < 0 && notInv(t))
 
   // ── Baseline per-day-rate by category ──
   const baselineCatMap = new Map<string, { name: string; color: string; perDay: number }>()

@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { format } from 'date-fns'
-import { Search, ChevronLeft, ChevronRight, Pencil, Check, X, Plus, SlidersHorizontal, Trash2 } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight, Pencil, Check, X, Plus, SlidersHorizontal, Trash2, Undo2 } from 'lucide-react'
 import Skeleton from './Skeleton'
 import ConfirmDialog from './ConfirmDialog'
 import CategoryOptions, { type Category } from './CategorySelectOptions'
 import TransactionFormModal from './TransactionFormModal'
+import RefundFormModal, { type Refund } from './RefundFormModal'
 
 function isFixedExpense(category: Category | null): boolean {
   return !!category?.isFixed
@@ -22,6 +23,18 @@ interface Transaction {
   isTransfer: boolean
   notes: string | null
   category: Category | null
+  refunds?: Refund[]
+  refunded?: number
+}
+
+/** Se pueden añadir devoluciones a gastos (no transferencias) que no estén ya devueltos del todo. */
+function canRefund(tx: Transaction): boolean {
+  return !tx.isTransfer && tx.amount < 0 && (tx.refunded ?? 0) < Math.abs(tx.amount) - 0.005
+}
+
+/** Importe neto: el gasto menos lo devuelto. */
+function netAmount(tx: Transaction): number {
+  return tx.refunded ? Math.min(0, tx.amount + tx.refunded) : tx.amount
 }
 
 function fmt(n: number) {
@@ -58,6 +71,11 @@ export default function TransactionsClient() {
   // New/edit transaction modal
   const [showNewModal, setShowNewModal] = useState(false)
   const [editTx, setEditTx] = useState<Transaction | null>(null)
+
+  // Refunds
+  const [refundParent, setRefundParent] = useState<Transaction | null>(null)
+  const [editRefund, setEditRefund] = useState<Refund | null>(null)
+  const [expandedRefundsId, setExpandedRefundsId] = useState<string | null>(null)
 
   const limit = 50
 
@@ -119,10 +137,23 @@ export default function TransactionsClient() {
     setShowNewModal(true)
   }
 
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; description: string } | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; description: string; refundCount: number; isRefund?: boolean } | null>(null)
 
-  function deleteTransaction(id: string, description: string) {
-    setDeleteTarget({ id, description })
+  function deleteTransaction(id: string, description: string, refundCount = 0) {
+    setDeleteTarget({ id, description, refundCount })
+  }
+
+  function openRefundModal(parent: Transaction, refund: Refund | null = null) {
+    setEditRefund(refund)
+    setRefundParent(parent)
+  }
+
+  function deleteRefund(refund: Refund) {
+    setDeleteTarget({ id: refund.id, description: refund.description, refundCount: 0, isRefund: true })
+  }
+
+  function toggleRefunds(id: string) {
+    setExpandedRefundsId((cur) => (cur === id ? null : id))
   }
 
   async function confirmDeleteTransaction() {
@@ -418,12 +449,18 @@ export default function TransactionsClient() {
                       {tx.notes && <Pencil size={10} className="opacity-0 group-hover/notes:opacity-60 transition-opacity flex-shrink-0" />}
                     </button>
                   )}
+                  <RefundBadge tx={tx} expanded={expandedRefundsId === tx.id} onToggle={() => toggleRefunds(tx.id)} />
                 </div>
 
-                <span className="text-sm font-medium text-right tabular-nums" role="cell"
-                  style={{ color: tx.isTransfer ? 'var(--muted)' : tx.amount < 0 ? 'var(--negative)' : 'var(--positive)' }}>
-                  {fmt(tx.amount)}
-                </span>
+                <div className="text-right" role="cell">
+                  <div className="text-sm font-medium tabular-nums"
+                    style={{ color: tx.isTransfer ? 'var(--muted)' : tx.amount < 0 ? 'var(--negative)' : 'var(--positive)' }}>
+                    {fmt(netAmount(tx))}
+                  </div>
+                  {!!tx.refunded && (
+                    <div className="text-xs tabular-nums line-through" style={{ color: 'var(--muted)' }}>{fmt(tx.amount)}</div>
+                  )}
+                </div>
 
                 <div className="text-center" role="cell">
                   {editingId === tx.id ? (
@@ -457,18 +494,31 @@ export default function TransactionsClient() {
                 </div>
 
                 <div className="flex items-center justify-end gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity" role="cell">
+                  {canRefund(tx) && (
+                    <button onClick={() => openRefundModal(tx)}
+                      className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
+                      aria-label={`Añadir devolución a ${tx.description}`} title="Añadir devolución">
+                      <Undo2 size={13} />
+                    </button>
+                  )}
                   <button onClick={() => openEditModal(tx)}
                     className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
                     aria-label={`Editar transacción ${tx.description}`} title="Editar transacción">
                     <Pencil size={13} />
                   </button>
-                  <button onClick={() => deleteTransaction(tx.id, tx.description)}
+                  <button onClick={() => deleteTransaction(tx.id, tx.description, tx.refunds?.length ?? 0)}
                     className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400"
                     aria-label={`Eliminar transacción ${tx.description}`} title="Eliminar transacción">
                     <Trash2 size={13} />
                   </button>
                 </div>
               </div>
+
+              {expandedRefundsId === tx.id && (
+                <div className="pb-2" style={{ paddingLeft: 'calc(1.25rem + 88px + 0.5rem)', paddingRight: '1.25rem' }}>
+                  <RefundList tx={tx} onAdd={() => openRefundModal(tx)} onEdit={(r) => openRefundModal(tx, r)} onDelete={deleteRefund} />
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -498,15 +548,21 @@ export default function TransactionsClient() {
               <span className="text-xs tabular-nums mt-0.5" style={{ color: 'var(--muted)' }}>
                 {format(new Date(tx.date), 'dd MMM yyyy')}
               </span>
-              <span className="text-base font-semibold tabular-nums flex-shrink-0"
-                style={{ color: tx.isTransfer ? 'var(--muted)' : tx.amount < 0 ? 'var(--negative)' : 'var(--positive)' }}>
-                {fmt(tx.amount)}
-              </span>
+              <div className="text-right flex-shrink-0">
+                <div className="text-base font-semibold tabular-nums"
+                  style={{ color: tx.isTransfer ? 'var(--muted)' : tx.amount < 0 ? 'var(--negative)' : 'var(--positive)' }}>
+                  {fmt(netAmount(tx))}
+                </div>
+                {!!tx.refunded && (
+                  <div className="text-xs tabular-nums line-through" style={{ color: 'var(--muted)' }}>{fmt(tx.amount)}</div>
+                )}
+              </div>
             </div>
 
             {/* Description */}
             <div>
               <div className="text-sm font-medium leading-snug">{tx.description}</div>
+              <RefundBadge tx={tx} expanded={expandedRefundsId === tx.id} onToggle={() => toggleRefunds(tx.id)} />
             </div>
 
             {/* Bottom row: category pill */}
@@ -540,12 +596,19 @@ export default function TransactionsClient() {
                 </span>
               )}
               <div className="flex items-center gap-1 flex-shrink-0 ml-auto">
+                {canRefund(tx) && (
+                  <button onClick={() => openRefundModal(tx)}
+                    className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
+                    aria-label={`Añadir devolución a ${tx.description}`} title="Añadir devolución">
+                    <Undo2 size={13} />
+                  </button>
+                )}
                 <button onClick={() => openEditModal(tx)}
                   className="p-1.5 rounded hover:bg-white/10 transition-colors" style={{ color: 'var(--muted)' }}
                   aria-label={`Editar transacción ${tx.description}`} title="Editar transacción">
                   <Pencil size={13} />
                 </button>
-                <button onClick={() => deleteTransaction(tx.id, tx.description)}
+                <button onClick={() => deleteTransaction(tx.id, tx.description, tx.refunds?.length ?? 0)}
                   className="p-1.5 rounded hover:bg-white/10 transition-colors text-red-400"
                   aria-label={`Eliminar transacción ${tx.description}`} title="Eliminar transacción">
                   <Trash2 size={13} />
@@ -558,6 +621,10 @@ export default function TransactionsClient() {
               <div className="text-xs px-2 py-1 rounded" style={{ background: 'rgba(0,217,118,.07)', color: 'var(--accent)' }}>
                 {tx.notes}
               </div>
+            )}
+
+            {expandedRefundsId === tx.id && (
+              <RefundList tx={tx} onAdd={() => openRefundModal(tx)} onEdit={(r) => openRefundModal(tx, r)} onDelete={deleteRefund} />
             )}
           </div>
         ))}
@@ -601,13 +668,74 @@ export default function TransactionsClient() {
         editTx={editTx}
       />
 
+      <RefundFormModal
+        parent={refundParent && { id: refundParent.id, description: refundParent.description, amount: refundParent.amount, refunded: refundParent.refunded ?? 0 }}
+        editRefund={editRefund}
+        onClose={() => { setRefundParent(null); setEditRefund(null) }}
+        onSaved={load}
+      />
+
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Eliminar transacción"
-        message={`¿Eliminar "${deleteTarget?.description}"? Esta acción no se puede deshacer.`}
+        title={deleteTarget?.isRefund ? 'Eliminar devolución' : 'Eliminar transacción'}
+        message={`¿Eliminar "${deleteTarget?.description}"?${
+          deleteTarget?.refundCount
+            ? ` También se eliminarán sus ${deleteTarget.refundCount === 1 ? 'devolución' : `${deleteTarget.refundCount} devoluciones`}.`
+            : ''
+        } Esta acción no se puede deshacer.`}
         onConfirm={confirmDeleteTransaction}
         onCancel={() => setDeleteTarget(null)}
       />
+    </div>
+  )
+}
+
+function RefundBadge({ tx, expanded, onToggle }: { tx: Transaction; expanded: boolean; onToggle: () => void }) {
+  const count = tx.refunds?.length ?? 0
+  if (count === 0) return null
+  return (
+    <button onClick={onToggle}
+      className="flex items-center gap-1 mt-1 text-xs px-1.5 py-0.5 rounded transition-opacity hover:opacity-80"
+      style={{ background: 'rgba(0,217,118,.1)', color: 'var(--accent)' }}
+      aria-expanded={expanded}>
+      <Undo2 size={10} />
+      {count === 1 ? '1 devolución' : `${count} devoluciones`} · {fmt(tx.refunded ?? 0)}
+    </button>
+  )
+}
+
+function RefundList({ tx, onAdd, onEdit, onDelete }: {
+  tx: Transaction
+  onAdd: () => void
+  onEdit: (refund: Refund) => void
+  onDelete: (refund: Refund) => void
+}) {
+  return (
+    <div className="rounded-lg divide-y" style={{ background: '#0a0a0b', border: '1px solid var(--card-border)', borderColor: 'var(--card-border)' }}>
+      {(tx.refunds ?? []).map((r) => (
+        <div key={r.id} className="flex items-center gap-2 px-3 py-2 text-xs" style={{ borderColor: 'var(--card-border)' }}>
+          <span className="tabular-nums flex-shrink-0" style={{ color: 'var(--muted)' }}>{format(new Date(r.date), 'dd/MM/yy')}</span>
+          <span className="flex-1 min-w-0 truncate">
+            {r.description}
+            {r.notes && <span style={{ color: 'var(--muted)' }}> · {r.notes}</span>}
+          </span>
+          <span className="tabular-nums font-medium flex-shrink-0" style={{ color: 'var(--positive)' }}>+{fmt(r.amount)}</span>
+          <button onClick={() => onEdit(r)} className="p-1 rounded hover:bg-white/10" style={{ color: 'var(--muted)' }}
+            aria-label={`Editar devolución ${r.description}`} title="Editar devolución">
+            <Pencil size={12} />
+          </button>
+          <button onClick={() => onDelete(r)} className="p-1 rounded hover:bg-white/10 text-red-400"
+            aria-label={`Eliminar devolución ${r.description}`} title="Eliminar devolución">
+            <Trash2 size={12} />
+          </button>
+        </div>
+      ))}
+      {canRefund(tx) && (
+        <button onClick={onAdd} className="w-full flex items-center gap-1.5 px-3 py-2 text-xs hover:bg-white/5"
+          style={{ color: 'var(--accent)', borderColor: 'var(--card-border)' }}>
+          <Plus size={12} /> Añadir devolución
+        </button>
+      )}
     </div>
   )
 }

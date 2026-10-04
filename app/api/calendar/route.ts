@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/session'
 import { startOfMonth, endOfMonth, format } from 'date-fns'
+import { applyRefunds, notRefund, refundAmounts } from '@/lib/refunds'
 
 export async function GET(req: NextRequest) {
   const session = await getSession()
@@ -16,17 +17,19 @@ export async function GET(req: NextRequest) {
   const from = startOfMonth(ref)
   const to = endOfMonth(ref)
 
-  const txs = await prisma.transaction.findMany({
-    where: { userId, date: { gte: from, lte: to }, isTransfer: false },
+  // Devoluciones: se restan del gasto en el día del gasto.
+  const txs = applyRefunds(await prisma.transaction.findMany({
+    where: { userId, date: { gte: from, lte: to }, isTransfer: false, ...notRefund },
     select: {
       id: true,
       date: true,
       amount: true,
       description: true,
       category: { select: { name: true, color: true } },
+      ...refundAmounts,
     },
     orderBy: { date: 'asc' },
-  })
+  })).map((tx) => ({ id: tx.id, date: tx.date, amount: tx.amount, description: tx.description, category: tx.category }))
 
   // Aggregate by day
   const days: Record<string, { expenses: number; income: number; count: number }> = {}

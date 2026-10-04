@@ -196,7 +196,9 @@ export default function DashboardClient() {
     })
     const res = await fetch(`/api/transactions?${params}`)
     const d = await res.json()
-    setCatTxs(d.transactions ?? [])
+    // Muestra el gasto neto, ya restadas sus devoluciones.
+    setCatTxs((d.transactions ?? []).map((t: TxRow & { refunded?: number }) =>
+      t.refunded ? { ...t, amount: Math.min(0, t.amount + t.refunded) } : t))
     setLoadingCatTxs(false)
   }
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { X } from 'lucide-react'
 import CategoryOptions, { type Category } from './CategorySelectOptions'
+import { evaluateExpression } from '@/lib/calc'
 
 export interface EditableTransaction {
   id: string
@@ -20,19 +21,21 @@ interface TransactionFormModalProps {
   onClose: () => void
   onSaved: () => void
   editTx?: EditableTransaction | null
+  /** Fecha a preseleccionar al crear una transacción nueva (ignorada al editar). */
+  defaultDate?: string
 }
 
 const INPUT_STYLE = { background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }
 
-export default function TransactionFormModal({ open, onClose, onSaved, editTx }: TransactionFormModalProps) {
+export default function TransactionFormModal({ open, onClose, onSaved, editTx, defaultDate }: TransactionFormModalProps) {
   if (!open) return null
   // key fuerza un remount (y por tanto el reset del formulario) al pasar de crear a editar u otra transacción.
-  return <TransactionForm key={editTx?.id ?? 'new'} onClose={onClose} onSaved={onSaved} editTx={editTx} />
+  return <TransactionForm key={editTx?.id ?? defaultDate ?? 'new'} onClose={onClose} onSaved={onSaved} editTx={editTx} defaultDate={defaultDate} />
 }
 
-function TransactionForm({ onClose, onSaved, editTx }: Omit<TransactionFormModalProps, 'open'>) {
+function TransactionForm({ onClose, onSaved, editTx, defaultDate }: Omit<TransactionFormModalProps, 'open'>) {
   const [categories, setCategories] = useState<Category[]>([])
-  const [date, setDate] = useState(editTx ? editTx.date.slice(0, 10) : format(new Date(), 'yyyy-MM-dd'))
+  const [date, setDate] = useState(editTx ? editTx.date.slice(0, 10) : defaultDate ?? format(new Date(), 'yyyy-MM-dd'))
   const [amount, setAmount] = useState(editTx ? String(Math.abs(editTx.amount)) : '')
   const [type, setType] = useState<'gasto' | 'ingreso'>(editTx ? (editTx.amount < 0 ? 'gasto' : 'ingreso') : 'gasto')
   const [desc, setDesc] = useState(editTx?.description ?? '')
@@ -45,14 +48,21 @@ function TransactionForm({ onClose, onSaved, editTx }: Omit<TransactionFormModal
     fetch('/api/categories').then((r) => r.json()).then((d) => setCategories(d?.flat ?? []))
   }, [])
 
+  // El campo admite operaciones (p.ej. "12+5,40"); al salir del campo se muestra el resultado ya calculado.
+  function resolveAmount() {
+    const result = evaluateExpression(amount)
+    if (result !== null) setAmount(String(Math.abs(result)))
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!date || !amount || !desc.trim()) return
+    const parsedAmount = evaluateExpression(amount)
+    if (!date || parsedAmount === null || !desc.trim()) return
     setSaving(true)
     const sign = type === 'gasto' ? -1 : 1
     const body = {
       date,
-      amount: sign * Math.abs(parseFloat(amount)),
+      amount: sign * Math.abs(parsedAmount),
       description: desc.trim(),
       categoryId: category || null,
       notes: notes.trim() || null,
@@ -105,8 +115,8 @@ function TransactionForm({ onClose, onSaved, editTx }: Omit<TransactionFormModal
             </div>
             <div>
               <label className="text-xs mb-1 block" style={{ color: 'var(--muted)' }}>Importe (€)</label>
-              <input required type="number" step="0.01" min="0" placeholder="0,00"
-                value={amount} onChange={e => setAmount(e.target.value)}
+              <input required type="text" inputMode="decimal" placeholder="0,00 o 12+5,40"
+                value={amount} onChange={e => setAmount(e.target.value)} onBlur={resolveAmount}
                 className="w-full text-base px-3 py-2.5 rounded-lg outline-none"
                 style={INPUT_STYLE} />
             </div>

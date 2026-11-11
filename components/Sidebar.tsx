@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { LayoutDashboard, List, CalendarDays, Tag, Settings, LogOut, FileBarChart2 } from 'lucide-react'
 import Logo from './Logo'
+import Calculator from './Calculator'
 
 const nav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -88,6 +89,7 @@ export default function Sidebar() {
             <span className="text-sm flex-1 truncate" style={{ color: 'var(--foreground)' }}>
               {username ?? '…'}
             </span>
+            <Calculator />
             <button
               onClick={handleLogout}
               className="p-2 rounded hover:bg-white/10 transition-colors flex-shrink-0"

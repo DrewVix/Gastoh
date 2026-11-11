@@ -8,6 +8,15 @@ import {
 import { getInvestmentCategoryIds, splitInvestment, inSet } from '@/lib/investment'
 import { applyRefunds, notRefund, refundAmounts } from '@/lib/refunds'
 
+/** Normaliza una descripción para agrupar gastos recurrentes aunque varíe mayúsculas, acentos o espacios. */
+function normalizeDesc(s: string) {
+  return s
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 async function getPeriodData(from: Date, to: Date, userId: string, invIds: Set<string>) {
   // Devoluciones: se restan del gasto (en su fecha), así que se ordena tras aplicar el neto.
   const allTxs = applyRefunds(await prisma.transaction.findMany({
@@ -190,21 +199,29 @@ export async function GET(req: NextRequest) {
   }
 
   // ── Recurring expense detection ──
+  // Se agrupa por descripción normalizada (sin mayúsculas/acentos/espacios de más) para que
+  // el mismo gasto escrito con pequeñas variaciones cada mes siga contando como recurrente.
   const descMonthsMap = new Map<string, Set<string>>()
-  const descMeta = new Map<string, { amounts: number[]; catName: string; catColor: string }>()
+  const descMeta = new Map<string, { amounts: number[]; catName: string; catColor: string; displayNames: Map<string, number> }>()
   for (const tx of recurringTxs) {
-    const key = tx.description.trim()
+    const trimmed = tx.description.trim()
+    const key = normalizeDesc(trimmed)
+    if (!key) continue
     const monthKey = format(tx.date, 'yyyy-MM')
     if (!descMonthsMap.has(key)) descMonthsMap.set(key, new Set())
     descMonthsMap.get(key)!.add(monthKey)
-    if (!descMeta.has(key)) descMeta.set(key, { amounts: [], catName: tx.category?.name ?? 'Sin categoría', catColor: tx.category?.color ?? '#6b7280' })
-    descMeta.get(key)!.amounts.push(Math.abs(tx.amount))
+    if (!descMeta.has(key)) descMeta.set(key, { amounts: [], catName: tx.category?.name ?? 'Sin categoría', catColor: tx.category?.color ?? '#6b7280', displayNames: new Map() })
+    const meta = descMeta.get(key)!
+    meta.amounts.push(Math.abs(tx.amount))
+    meta.displayNames.set(trimmed, (meta.displayNames.get(trimmed) ?? 0) + 1)
   }
   const recurring = Array.from(descMonthsMap.entries())
     .filter(([, months]) => months.size >= 2)
-    .map(([name, months]) => {
-      const meta = descMeta.get(name)!
+    .map(([key, months]) => {
+      const meta = descMeta.get(key)!
       const avg = meta.amounts.reduce((s, v) => s + v, 0) / meta.amounts.length
+      // Nombre a mostrar: la grafía original más usada entre las variantes agrupadas.
+      const name = Array.from(meta.displayNames.entries()).sort((a, b) => b[1] - a[1])[0][0]
       return { name, monthlyAmount: Math.round(avg * 100) / 100, monthCount: months.size, categoryName: meta.catName, categoryColor: meta.catColor }
     })
     .sort((a, b) => b.monthlyAmount - a.monthlyAmount)

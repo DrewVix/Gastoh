@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
 import { getDaysInMonth, getDay, format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Skeleton from './Skeleton'
@@ -17,10 +17,51 @@ interface CalData {
   txsByDay: Record<string, CalTx[]>
 }
 
+interface Category {
+  id: string
+  name: string
+  parentId: string | null
+  parent: { id: string; name: string } | null
+  children: { id: string }[]
+}
+
 const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+
+const INPUT_STYLE = { background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }
 
 function eur(n: number) {
   return n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 })
+}
+
+// Solo categorías "hoja" (subcategorías o categorías sin grupo) son asignables.
+function buildCategoryOptions(categories: Category[]) {
+  const groups = new Map<string, { label: string; items: Category[] }>()
+  const standalone: Category[] = []
+  for (const c of categories) {
+    if (c.children.length > 0) continue
+    if (c.parentId && c.parent) {
+      const g = groups.get(c.parentId) ?? { label: c.parent.name, items: [] }
+      g.items.push(c)
+      groups.set(c.parentId, g)
+    } else {
+      standalone.push(c)
+    }
+  }
+  return { groups: Array.from(groups.values()), standalone }
+}
+
+function CategoryOptions({ categories }: { categories: Category[] }) {
+  const { groups, standalone } = buildCategoryOptions(categories)
+  return (
+    <>
+      {groups.map(g => (
+        <optgroup key={g.label} label={g.label}>
+          {g.items.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </optgroup>
+      ))}
+      {standalone.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+    </>
+  )
 }
 
 export default function CalendarClient() {
@@ -30,6 +71,18 @@ export default function CalendarClient() {
   const [data, setData] = useState<CalData | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [categories, setCategories] = useState<Category[]>([])
+
+  // New transaction modal
+  const [showNewModal, setShowNewModal] = useState(false)
+  const [newDate, setNewDate] = useState('')
+  const [newAmount, setNewAmount] = useState('')
+  const [newType, setNewType] = useState<'gasto' | 'ingreso'>('gasto')
+  const [newDesc, setNewDesc] = useState('')
+  const [newCategory, setNewCategory] = useState('')
+  const [newNotes, setNewNotes] = useState('')
+  const [newIsTransfer, setNewIsTransfer] = useState(false)
+  const [newSaving, setNewSaving] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -38,6 +91,47 @@ export default function CalendarClient() {
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false) })
   }, [year, month])
+
+  useEffect(() => {
+    fetch('/api/categories').then(r => r.json()).then(d => setCategories(d?.flat ?? []))
+  }, [])
+
+  function openDayModal(dateKey: string) {
+    setSelectedDay(dateKey)
+    setNewDate(dateKey)
+    setNewAmount('')
+    setNewType('gasto')
+    setNewDesc('')
+    setNewCategory('')
+    setNewNotes('')
+    setNewIsTransfer(false)
+    setShowNewModal(true)
+  }
+
+  async function submitTransaction(e: React.FormEvent) {
+    e.preventDefault()
+    if (!newDate || !newAmount || !newDesc.trim()) return
+    setNewSaving(true)
+    const sign = newType === 'gasto' ? -1 : 1
+    const body = {
+      date: newDate,
+      amount: sign * Math.abs(parseFloat(newAmount)),
+      description: newDesc.trim(),
+      categoryId: newCategory || null,
+      notes: newNotes.trim() || null,
+      isTransfer: newIsTransfer,
+    }
+    await fetch('/api/transactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    setNewSaving(false)
+    setShowNewModal(false)
+    fetch(`/api/calendar?year=${year}&month=${month}`)
+      .then(r => r.json())
+      .then(d => setData(d))
+  }
 
   function prevMonth() {
     if (month === 1) { setYear(y => y - 1); setMonth(12) }
@@ -126,7 +220,7 @@ export default function CalendarClient() {
               return (
                 <div
                   key={day}
-                  onClick={() => setSelectedDay(isSelected ? null : (summary ? dateKey : null))}
+                  onClick={() => summary ? setSelectedDay(isSelected ? null : dateKey) : openDayModal(dateKey)}
                   style={{
                     borderRight: '1px solid var(--card-border)',
                     borderBottom: '1px solid var(--card-border)',
@@ -136,7 +230,7 @@ export default function CalendarClient() {
                       : intensity > 0
                         ? `rgba(239,68,68,${intensity})`
                         : 'transparent',
-                    cursor: summary ? 'pointer' : 'default',
+                    cursor: 'pointer',
                   }}
                   className="p-2 flex flex-col justify-between transition-colors"
                 >
@@ -199,10 +293,17 @@ export default function CalendarClient() {
       {/* Selected day transactions */}
       {selectedDay && selectedTxs.length > 0 && (
         <div className="card overflow-hidden">
-          <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--card-border)' }}>
+          <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--card-border)' }}>
             <span className="text-sm font-semibold">
               {format(new Date(selectedDay + 'T12:00:00'), "d 'de' MMMM", { locale: es })}
             </span>
+            <button
+              onClick={() => openDayModal(selectedDay)}
+              className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-colors hover:opacity-80"
+              style={{ background: 'var(--accent)', color: '#fff' }}>
+              <Plus size={12} />
+              Añadir
+            </button>
           </div>
           <div className="divide-y divide-[var(--card-border)]">
             {selectedTxs.map(tx => (
@@ -221,6 +322,110 @@ export default function CalendarClient() {
                 </span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* New transaction modal */}
+      {showNewModal && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center md:p-4"
+          style={{ background: 'rgba(0,0,0,0.6)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowNewModal(false) }}>
+          <div className="card w-full md:max-w-md p-6 space-y-4 rounded-t-2xl md:rounded-xl"
+            style={{ background: 'var(--card)', maxHeight: '92vh', overflowY: 'auto' }}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-semibold">
+                Nueva transacción · {format(new Date(newDate + 'T12:00:00'), "d 'de' MMMM", { locale: es })}
+              </h2>
+              <button onClick={() => setShowNewModal(false)} className="p-2 -m-2 hover:opacity-60" aria-label="Cerrar"><X size={18} /></button>
+            </div>
+
+            <form onSubmit={submitTransaction} className="space-y-3">
+              {/* Type toggle */}
+              <div className="flex rounded-lg overflow-hidden text-sm" style={{ border: '1px solid var(--card-border)' }}>
+                {(['gasto', 'ingreso'] as const).map(t => (
+                  <button key={t} type="button"
+                    onClick={() => setNewType(t)}
+                    className="flex-1 py-2 capitalize transition-colors"
+                    style={{
+                      background: newType === t ? (t === 'gasto' ? 'var(--negative)' : 'var(--positive)') : 'transparent',
+                      color: newType === t ? '#fff' : 'var(--muted)',
+                    }}>
+                    {t === 'gasto' ? 'Gasto' : 'Ingreso'}
+                  </button>
+                ))}
+              </div>
+
+              {/* Date + Amount */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs mb-1 block" style={{ color: 'var(--muted)' }}>Fecha</label>
+                  <input required type="date" value={newDate} onChange={e => setNewDate(e.target.value)}
+                    className="w-full text-base px-3 py-2.5 rounded-lg outline-none"
+                    style={INPUT_STYLE} />
+                </div>
+                <div>
+                  <label className="text-xs mb-1 block" style={{ color: 'var(--muted)' }}>Importe (€)</label>
+                  <input required type="number" step="0.01" min="0" placeholder="0,00"
+                    value={newAmount} onChange={e => setNewAmount(e.target.value)}
+                    className="w-full text-base px-3 py-2.5 rounded-lg outline-none"
+                    style={INPUT_STYLE} />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="text-xs mb-1 block" style={{ color: 'var(--muted)' }}>
+                  {newType === 'gasto' ? 'Descripción *' : 'Concepto *'}
+                </label>
+                <input required type="text"
+                  placeholder={newType === 'gasto' ? 'Ej: Compra en Mercadona' : 'Ej: Nómina, Bizum de un amigo'}
+                  value={newDesc} onChange={e => setNewDesc(e.target.value)}
+                  className="w-full text-base px-3 py-2.5 rounded-lg outline-none"
+                  style={INPUT_STYLE} />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="text-xs mb-1 block" style={{ color: 'var(--muted)' }}>Categoría</label>
+                <select value={newCategory} onChange={e => setNewCategory(e.target.value)}
+                  className="w-full text-base px-3 py-2.5 rounded-lg outline-none"
+                  style={INPUT_STYLE}>
+                  <option value="">Sin categoría</option>
+                  <CategoryOptions categories={categories} />
+                </select>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="text-xs mb-1 block" style={{ color: 'var(--muted)' }}>Notas (opcional)</label>
+                <input type="text" placeholder="Notas adicionales..."
+                  value={newNotes} onChange={e => setNewNotes(e.target.value)}
+                  className="w-full text-base px-3 py-2.5 rounded-lg outline-none"
+                  style={INPUT_STYLE} />
+              </div>
+
+              {/* Transfer */}
+              <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'var(--muted)' }}>
+                <input type="checkbox" checked={newIsTransfer} onChange={e => setNewIsTransfer(e.target.checked)}
+                  className="accent-current" style={{ accentColor: 'var(--accent)' }} />
+                Es una transferencia entre cuentas (no cuenta como gasto ni ingreso real)
+              </label>
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-1">
+                <button type="button" onClick={() => setShowNewModal(false)}
+                  className="flex-1 text-sm py-2.5 rounded-lg transition-colors hover:opacity-80"
+                  style={{ border: '1px solid var(--card-border)', color: 'var(--muted)' }}>
+                  Cancelar
+                </button>
+                <button type="submit" disabled={newSaving}
+                  className="flex-1 text-sm py-2.5 rounded-lg transition-opacity disabled:opacity-50"
+                  style={{ background: 'var(--accent)', color: '#fff' }}>
+                  {newSaving ? 'Guardando...' : 'Guardar'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

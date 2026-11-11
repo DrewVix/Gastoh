@@ -43,9 +43,12 @@ function fmt(n: number) {
 
 const INPUT_STYLE = { background: '#0a0a0b', border: '1px solid var(--card-border)', color: 'var(--foreground)' }
 
+interface Summary { count: number; totalExpense: number; totalIncome: number; balance: number }
+
 export default function TransactionsClient() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [total, setTotal] = useState(0)
+  const [summary, setSummary] = useState<Summary | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -98,6 +101,7 @@ export default function TransactionsClient() {
     const data = await res.json()
     setTransactions(data.transactions ?? [])
     setTotal(data.total ?? 0)
+    setSummary(data.summary ?? null)
     setLoading(false)
   }, [page, q, filterCategory, filterMonth, filterType, filterFixed, filterMinAmount, filterMaxAmount, sortBy, sortDir])
 
@@ -384,6 +388,22 @@ export default function TransactionsClient() {
           <span role="columnheader" aria-label="Acciones" />
         </div>
 
+        {summary && !loading && (
+          <div className="px-5 py-2.5 border-b flex items-center justify-between gap-4 text-xs flex-wrap"
+            style={{ borderColor: 'var(--card-border)', background: 'rgba(0,217,118,.04)' }}>
+            <span style={{ color: 'var(--muted)' }}>
+              <strong style={{ color: 'var(--foreground)' }}>{summary.count}</strong> transacciones{filterMonth || filterCategory || filterType || q ? ' · filtradas' : ''}
+            </span>
+            <div className="flex items-center gap-4 tabular-nums font-medium">
+              <span style={{ color: 'var(--negative)' }}>Gastos {fmt(-summary.totalExpense)}</span>
+              <span style={{ color: 'var(--positive)' }}>Ingresos {fmt(summary.totalIncome)}</span>
+              <span style={{ color: summary.balance >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
+                Balance {fmt(summary.balance)}
+              </span>
+            </div>
+          </div>
+        )}
+
         {loading && (
           <div className="divide-y divide-[var(--card-border)]" aria-hidden="true">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -528,6 +548,20 @@ export default function TransactionsClient() {
 
       {/* ── Mobile card list ── */}
       <div className="md:hidden space-y-2">
+        {summary && !loading && (
+          <div className="card px-4 py-3 space-y-1.5 text-xs" style={{ background: 'rgba(0,217,118,.04)' }}>
+            <span style={{ color: 'var(--muted)' }}>
+              <strong style={{ color: 'var(--foreground)' }}>{summary.count}</strong> transacciones{filterMonth || filterCategory || filterType || q ? ' · filtradas' : ''}
+            </span>
+            <div className="flex items-center flex-wrap gap-x-3 gap-y-1 tabular-nums font-medium">
+              <span style={{ color: 'var(--negative)' }}>Gastos {fmt(-summary.totalExpense)}</span>
+              <span style={{ color: 'var(--positive)' }}>Ingresos {fmt(summary.totalIncome)}</span>
+              <span style={{ color: summary.balance >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
+                Balance {fmt(summary.balance)}
+              </span>
+            </div>
+          </div>
+        )}
         {loading && Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="card px-4 py-3 space-y-2">
             <div className="flex items-start justify-between gap-2">

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/session'
-import { notRefund, refundedTotal, validateRefund } from '@/lib/refunds'
+import { notRefund, netAmount, refundAmounts, refundedTotal, validateRefund } from '@/lib/refunds'
 
 export async function GET(req: NextRequest) {
   const session = await getSession()
@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
 
   if (and.length) where.AND = and
 
-  const [transactions, total] = await Promise.all([
+  const [transactions, total, summaryRows] = await Promise.all([
     prisma.transaction.findMany({
       where,
       include: {
@@ -88,11 +88,21 @@ export async function GET(req: NextRequest) {
       take: limit,
     }),
     prisma.transaction.count({ where }),
+    // Resumen sobre TODO lo filtrado (no solo la página actual); los gastos se netean con sus devoluciones.
+    prisma.transaction.findMany({ where, select: { amount: true, ...refundAmounts } }),
   ])
+
+  let totalExpense = 0
+  let totalIncome = 0
+  for (const t of summaryRows) {
+    if (t.amount < 0) totalExpense += -netAmount(t)
+    else if (t.amount > 0) totalIncome += t.amount
+  }
 
   return NextResponse.json({
     transactions: transactions.map((t) => ({ ...t, refunded: refundedTotal(t) })),
     total, page, limit,
+    summary: { count: total, totalExpense, totalIncome, balance: totalIncome - totalExpense },
   })
 }
 
